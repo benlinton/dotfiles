@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# TODO: instead, run install-symlinks command with an --uninstall flag
+
+unlink ~/.bash_profile
+unlink ~/.bashrc
+unlink ~/.gemrc
+unlink ~/.gitignore
+unlink ~/.irbrc
+unlink ~/.screenrc
+unlink ~/.vim
+unlink ~/.vimrc
+unlink ~/.bundle

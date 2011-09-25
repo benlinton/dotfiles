@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# ---------------------------------------------------------------------------
+# bashrc is executed for interactive non-login shells,
+# while bash_profile is executed for login shells
+# ---------------------------------------------------------------------------
+
+# Determine THIS_PATH; which should point to this file's directory (resolve
+# potential symlink if applicable)
+THIS_PATH="${BASH_SOURCE[0]}";
+if ([ -h "${THIS_PATH}" ]) then
+  while([ -h "${THIS_PATH}" ]) do THIS_PATH=`readlink "${THIS_PATH}"`; done
+fi
+pushd . > /dev/null
+cd `dirname ${THIS_PATH}` > /dev/null
+THIS_PATH=`pwd`;
+popd  > /dev/null
+
+# Initialize BASH_HOME
+BASH_HOME="${THIS_PATH}"
+export BASH_HOME
+
+# Bootstrap handles loading modular bash files
+source $BASH_HOME/bootstrap.sh

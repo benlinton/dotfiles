@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+# TODO: save previous name, email, user, token if it exists
+# and add it back after an update
+# TODO: optionally use ARG[1] if provided
+
+# Set directory that this script is located in
+THIS_DIR="$(dirname $0)"
+
+# Set destination file
+cd "$THIS_DIR/.."
+DEST_FILE="$(pwd)/git/gitconfig.template"
+
+# Set source file
+SRC_FILE=$HOME/.gitconfig
+
+# Copy source to destination
+cp "$SRC_FILE" "$DEST_FILE"
+
+# Sanitize sensitive data
+sed -iE "s/name[ ]*=[-_.a-zA-Z0-9 ]*/name =/" "$DEST_FILE"
+sed -iE "s/email[ ]*=[ ]*[-_.@a-zA-z0-9]*/email =/" "$DEST_FILE"
+sed -iE "s/user[ ]*=[ ]*[-_.@a-zA-Z0-9]*/user =/" "$DEST_FILE"
+sed -iE "s/token[ ]*=[ ]*[-_a-zA-Z0-9]*/token =/" "$DEST_FILE"
+
+# Cleanup unknown artifacts (from sed?)
+# TODO: solve this mystery
+rm "${DEST_FILE}E"

@@ -1,0 +1,243 @@
+#!/bin/bash
+#: Name         : crashplan-remote
+#: Date         : 2012-11-10
+#: Author       : "Benjamin Linton" <developer@benlinton.com>
+#: Version      : 1.0.0
+#: URLs         : http://benlinton.github.com
+#: Description  : Run before starting CrashPlan desktop app to connect to headless machine.
+#
+# Typical usage:
+#
+#   # before starting CrashPlan Desktop start the headless server
+#   ssh user@remote_server
+#   sudo crashplan-engine status
+#   sudo crashplan-engine start
+#   exit
+#
+#   # quit CrashPlan Desktop before running the connect command
+#   crashplan-remote install
+#   crashplan-remote connect user@remove_server
+#   # start CrashPlan Desktop
+#
+# Also see, http://support.crashplan.com/doku.php/how_to/configure_a_headless_client
+
+
+# ----------------------------------------------------------------------------
+# Global variables
+# ----------------------------------------------------------------------------
+script_name=${0##*/}
+config_dir=""
+previous_dir=`pwd`
+original_config="ui.properties"
+local_config="ui.local.properties"
+remote_config="ui.remote.properties"
+local_host="localhost"
+local_port="4243"
+remote_port="4200"
+connect_to=""
+
+# ----------------------------------------------------------------------------
+# Private functions
+# ----------------------------------------------------------------------------
+
+##
+# Private: usage function
+#
+# Print usage (i.e. for help or empty args)
+##
+function usage() {
+    echo "usage: $script_name help"
+    echo "       $script_name install"
+    echo "       $script_name connect [user@host]"
+    echo "       $script_name uninstall"
+}
+
+##
+# Private: setup config_dir function.
+#
+# Initialize path based on OS, test for existance, set global config_dir var,
+# then 'cd' to config_dir
+##
+function setup_config_dir() {
+  # Set config_dir based on OS
+  case $OSTYPE in
+    darwin*) # for OS X
+      config_dir="/Applications/CrashPlan.app/Contents/Resources/Java/conf"
+      ;;
+    linux*) # for Linux
+      config_dir="/usr/local/crashplan/conf"
+      ;;
+    solaris*) # for Solaris
+      config_dir="/opt/sfw/crashplan/conf"
+      ;;
+    *) # abort for unknown OS's, including Windows
+      echo "Error, operating system not supported: $OSTYPE"
+      exit 1
+      ;;
+  esac;
+
+  # Verify config_dir exists
+  if [[ ! -e "$config_dir" ]]; then
+    echo "Error, config dir not found: $config_dir"
+    exit 1
+  fi
+
+  # Change to config_dir
+  cd "$config_dir"
+}
+
+##
+# Private: reset config_dir
+#
+# Changes back to the previous path before this script was called.
+# Used at the end of functions that call set_config_dir()
+##
+function reset_config_dir() {
+  cd "$previous_dir"
+}
+
+# ----------------------------------------------------------------------------
+# Public commands
+# ----------------------------------------------------------------------------
+
+##
+# Connect command
+#
+# Creates a tunnel to the headless server for CrashPlan Desktop to use.
+#   usage: connect [user@server]
+#   expects $connect_to for the 'user@server' arg
+##
+function connect() {
+  setup_config_dir
+
+  # TODO: check to see if CrashPlan Desktop is already running
+  # ...
+
+  # Verify $connect_to was provided
+  if [ -z "$connect_to" ]; then
+    echo "Error, invalid usage of 'connect' command. Please see usage:"
+    usage
+    exit 1
+  fi
+
+  # Verify the install command was ran
+  if [[ ! -f $remote_config ]]; then
+    echo "Warning, $script_name install required."
+    install
+  fi
+
+  # Symlink to remote config
+  echo "Loading remote CrashPlan config."
+  ln -nfs "$remote_config" "$original_config"
+
+  # SSH to remote server
+  echo "Connecting to $connect_to"
+  echo "Please start CrashPlan Desktop after successfully logging in."
+  ssh -L $remote_port:$local_host:$local_port $connect_to # TODO: apply port variables
+
+  # Symlink back to local config (after ssh exit)
+  echo "Loading local CrashPlan config."
+  ln -nfs "$local_config" "$original_config"
+
+  # Restore previous path, before this command was called
+  reset_config_dir
+}
+
+##
+# Install command.
+#
+# Copy original into local and remote, remove original,
+# create a symlink that we can toggle between local and remote, append ports
+##
+function install() {
+  setup_config_dir
+
+  # Error handling
+  if [[ ! -f $original_config ]]; then # if original_config doesn't exist, error
+    echo "Error, missing file: ${config_dir}/${original_config}"
+    exit 1
+  elif [[ -h $original_config ]]; then # or if original_config is a symlink, error
+    echo "Error, $script_name already installed"
+    exit 1
+  fi
+
+  # Copy original to local
+  echo "Create local config: ${config_dir}/${local_config}"
+  cp "$original_config" "$local_config"
+
+  # Copy original to remote
+  echo "Create remote config: ${config_dir}/${remote_config}"
+  cp "$original_config" "$remote_config"
+
+  echo "Remove original config."
+  rm "$original_config"
+
+  echo "Symlink to local config."
+  ln -s "$local_config" "$original_config"
+
+  # Add port to remote config
+  echo "Append servicePort=$remote_port setting to remote config."
+  # TODO: make this more robust
+  echo "" >> "$remote_config"
+  echo "# Remote setting" >> "$remote_config"
+  echo "servicePort=$remote_port" >> "$remote_config"
+
+  echo "Install successful."
+  reset_config_dir
+}
+
+##
+# Uninstall command
+##
+function uninstall() {
+  setup_config_dir
+
+  if [[ ! -h $original_config ]]; then # if file isn't a symlink
+    echo "Error, $script_name install not found."
+    exit 1
+  fi
+
+  echo "Copy local config to original config."
+  unlink "$original_config"
+  cp "$local_config" "$original_config"
+
+  echo "Remove local config."
+  rm "$local_config"
+
+  echo "Remove remote config."
+  rm "$remote_config"
+
+  echo "Uninstall successful."
+  reset_config_dir
+}
+
+# ----------------------------------------------------------------------------
+# Global scope; executed first
+# ----------------------------------------------------------------------------
+
+# Process command line args
+case "$1" in
+  'connect')
+    connect_to=$2
+    connect
+    exit 0
+    ;;
+  'install')
+    install
+    exit 0
+    ;;
+  'uninstall')
+    uninstall
+    exit 0
+    ;;
+  'help' | '')
+    usage
+    exit 0
+    ;;
+  *)
+    echo "Error, invalid command; please see proper usage:"
+    usage
+    exit 1
+    ;;
+esac
+

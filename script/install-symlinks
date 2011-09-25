@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+#
+# TODO: add support for installing to a different directory
+# TODO: add the --uninstall flag and have uninstaller use this script
+# TODO: make this use an array and a loop
+# TODO: automatically find all .symlink files
+
+# bash
+ln -s ~/.dotfiles/bash/bash_profile.symlink ~/.bash_profile
+ln -s ~/.dotfiles/bash/bashrc.symlink ~/.bashrc
+
+# git
+ln -s ~/.dotfiles/git/gitignore.symlink ~/.gitignore
+
+# screen
+ln -s ~/.dotfiles/screen/screenrc.symlink ~/.screenrc
+
+# ruby
+ln -s ~/.dotfiles/ruby/bundle.symlink/ ~/.bundle
+ln -s ~/.dotfiles/ruby/gemrc.symlink ~/.gemrc
+ln -s ~/.dotfiles/ruby/irbrc.symlink ~/.irbrc
+
+# vim
+#ln -s ~/.dotfiles/vim/vim.symlink/ ~/.vim
+#ln -s ~/.dotfiles/vim/vimrc.symlink ~/.vimrc
+#ln -s ~/.dotfiles/vim/gvimrc.symlink ~/.gvimrc
+#ln -s ~/.dotfiles/vim/mvimrc.symlink ~/.mvimrc

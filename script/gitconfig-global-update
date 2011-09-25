@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# TODO: save previous name, email, user, token if it exists
+# and add it back after an update
+
+# Set directory that this script is located in
+THIS_DIR="$(dirname $0)"
+
+# Set source file
+cd "$THIS_DIR/.."
+SRC_FILE="$(pwd)/git/gitconfig.template"
+
+# Set destination file
+DEST_FILE=$HOME/.gitconfig
+
+# Copy source to destination
+cp "$SRC_FILE" "$DEST_FILE"

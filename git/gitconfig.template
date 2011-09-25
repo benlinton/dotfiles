@@ -1,0 +1,30 @@
+[user]
+	name =
+	email =
+[alias]
+	aliases = config --get-regexp alias.*
+	co = checkout
+	ds = diff --staged
+	lol = log --graph --decorate --pretty=oneline --abbrev-commit
+	lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
+	lons = log --name-status
+	unstage = reset HEAD
+[color]
+	diff = auto
+	status = auto
+	branch = auto
+[core]
+	excludesfile = ~/.gitignore
+	editor = vim
+	autocrlf = input
+[apply]
+	whitespace = nowarn
+[format]
+	pretty = %C(yellow)%h%Creset %s %C(red)(%an, %cr)%Creset
+[github]
+	user =
+	token =
+[credential]
+	helper = osxkeychain
+[push]
+	default = simple
