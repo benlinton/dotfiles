@@ -1,3 +1,103 @@
+#!/usr/bin/ruby
+#
+# Sources:
+# http://tagaholic.me/2009/05/29/exploring-how-to-configure-irb.html
+
+require 'irb/completion'
 require 'irb/ext/save-history'
-IRB.conf[:SAVE_HISTORY] = 200
+
+#------------------------------------------------
+# History Options
+#------------------------------------------------
+# :SAVE_HISTORY (number): Sets number of statements to keep in a history file.
+# :HISTORY_FILE (filename): Specify a history file.
+# :EVAL_HISTORY (number): Stores the outputs of the last number of statements in __ .
+
+IRB.conf[:SAVE_HISTORY] = 1000
 IRB.conf[:HISTORY_FILE] = "#{ENV['HOME']}/.irb-history"
+
+#------------------------------------------------
+# Basic Options
+#------------------------------------------------
+# :SINGLE_IRB: Enables all irb subsessions to be evaluated under the same binding. Default is false.
+# :MATH_MODE: Enables math mode. Default is false. Enabling :MATH_MODE or irb -m, alters the default inspect mode and provides math commands by extending the Math module.
+# :RC: Enables loading an irbrc file. Default is true. Disabling :RC or irb -f, turns off any irbrc loading.
+# :USE_LOADER: Enabling :USE_LOADER overrides the default load() and require() with irb’s own commands, irb_load() and irb_require(). Default is false. Irb’s commands evaluate and display each line as if they had been input into irb. Read this to learn more about these irb commands. If you’re unsure what I mean by override, read the implementation.
+# :IGNORE_EOF: Ignores end of line input (Control-D in *nix) or exits current subsession. Default is false.
+# :IGNORE_SIGINT: If true, aborts current operation or returns to top level. If false, exits irb. Default is true.
+# :USE_READLINE: Enables using readline for input. This is a tri-state option: true, false or nil. Default is false or nil depending on readline’s existence. nil acts just like true except when irb is in inf-ruby-mode.
+
+#------------------------------------------------
+# Advanced Options
+#------------------------------------------------
+# :IRB_RC (proc): This proc is called every time a subsession is created.
+# :SCRIPT (string): This is used implicitly when irb is passed arguments on the commandline. Sets irb in a file input mode in which it evaluates the file’s contents as input and prints out the interaction to stdout.
+# :LOAD_MODULES (paths): At startup, loads the given paths using require(). Since require() uses $LOAD_PATH to find files, gems as well as paths relative to the current directory are valid paths.
+# :CONTEXT_MODE (number): Sets the type of binding that irb uses when evaluating statements. Can be either 0, 1, 2 or 3 (3 is the default).
+# :RC_NAME_GENERATOR (proc): Generates an irb config file. Used by irb_history and irbrc. When not set defaults to this.
+
+#------------------------------------------------
+# Visual Options
+#------------------------------------------------
+# :AUTO_INDENT (boolean): Auto indents code when defining blocks, methods, classes, etc. Default is false.
+# :INSPECT_MODE (booleanish): When true or nil, formats output by calling inspect() on the statement result. When false just prints output. Default is nil. Note that setting this option from the commandline i.e. @context.inspect_mode= is buggy: it needs to be called twice to set it to false when initially nil.
+# :ECHO (booleanish): When true or nil, a statement’s output is printed. When false, no output is shown. Default is nil.
+# :PROMPT (hash): Hash of available prompts, mapping symbols to prompt hashes.
+# :PROMPT_MODE (symbol): Current prompt, pointing to a key in :PROMPT.
+#
+#     To create your own prompts, add an entry in :PROMPT. Your prompt should be a hash with the following keys:
+#     :PROMPT_I: Normal prompt
+#     :PROMPT_S: Prompt when continuing a string
+#     :PROMPT_C: Prompt when continuing a statement
+#     :PROMPT_N: Prompt when indenting code
+#     :RETURN: String that prefixes output of a statement. Since this is passed to Kernel#printf(), the output could be displayed with any of its string flags, though most choose %s.
+#     
+#     Updated: The different prompt types that start with :PROMPT* substitute string flags for certain values:
+#     %N – Value from Irb.conf[:IRB_NAME]
+#     %m – self.to_s
+#     %M – self.inspect
+#     %l – Character needed to finish continuing a string. Should be used with :PROMPT_S.
+#     %zi – Indent level with optional number z for printf width.
+#     %zn – Line number with optional number z for printf width.
+#     %% – Literal percentage sign.
+
+IRB.conf[:PROMPT_MODE] = :SIMPLE
+IRB.conf[:AUTO_INDENT] = true
+
+#------------------------------------------------
+# Debug Options
+#------------------------------------------------
+# :BACK_TRACE_LIMIT (number): Number of messages to display from beginning and end of a caught error’s backtrace. Default is 16.
+# :USE_TRACER (boolean): Enables using the standard library Tracer to trace execution in irb.
+# :VERBOSE (boolean): Sets the verbosity of a few context-related events. Seeing that verbose? is used by context objects, which doesn’t respect this option, my guess is this option is broken.
+# :DEBUG_LEVEL (number): Enables debugging for irb developers i.e. debugging the ruby lexical analyzer.
+
+#------------------------------------------------
+# Object class
+#------------------------------------------------
+class Object
+  
+  ##
+  # List methods which aren't in superclass
+  #
+  def local_methods(obj = self)
+    (obj.methods - obj.class.superclass.instance_methods)
+  end
+
+  ##
+  # Print documentation
+  #
+  #   ri 'Array#pop'
+  #   Array.ri
+  #   Array.ri :pop
+  #   arr.ri :pop
+  #
+  def ri(method = nil)
+    unless method && method =~ /^[A-Z]/ # if class isn't specified
+      klass = self.kind_of?(Class) ? name : self.class.name
+      method = [klass, method].compact.join('#')
+    end
+    puts `ri '#{method}'`
+  end
+
+end
