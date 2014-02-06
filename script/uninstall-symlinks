@@ -2,12 +2,24 @@
 
 # TODO: instead, run install-symlinks command with an --uninstall flag
 
+# bash
 unlink ~/.bash_profile
 unlink ~/.bashrc
-unlink ~/.gemrc
+
+# git
 unlink ~/.gitignore
-unlink ~/.irbrc
+
+# screen
 unlink ~/.screenrc
+
+# ruby
+unlink ~/.bundle
+unlink ~/.gemrc
+unlink ~/.irbrc
+unlink ~/.pryrc
+
+# vim
 unlink ~/.vim
 unlink ~/.vimrc
-unlink ~/.bundle
+unlink ~/.gvimrc
+unlink ~/.mvimrc

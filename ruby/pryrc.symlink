@@ -1,0 +1,197 @@
+#!/usr/bin/ruby
+#
+# Sources:
+# https://github.com/pry/pry/wiki/Pry-rc
+# https://github.com/pry/pry/wiki/Customization-and-configuration
+# https://github.com/pry/pry/wiki/Command-system
+
+#------------------------------------------------
+# Color
+#------------------------------------------------
+# Pry.config.color is a boolean option determining whether color will be used. Setting it to false disables color (i.e syntax highlighting and other color effects).
+# Note that the toggle-color command can also be used to toggle color on and off while in a session.
+# Default value: true
+
+# Pry.config.color = false
+
+#------------------------------------------------
+# Pager
+#------------------------------------------------
+# Pry.config.pager is a boolean option determining whether a pager will be used for long output. Setting it to false disables the pager.
+# Currently only the less pager is supported, though a very simple custom pager is used if less is not available.
+# It may be necessary to turn paging off if you are running Pry from within an emacs shell or similar.
+# Default value: true
+
+# Pry.config.pager = false
+
+#------------------------------------------------
+# Auto indent
+#------------------------------------------------
+# Pry.config.auto_indent is a boolean option determining whether automatic indenting of input will occur. Setting it to false disables automatic indenting.
+# Default value: true
+
+# Pry.config.auto_indent = false
+
+#------------------------------------------------
+# Correct indent
+#------------------------------------------------
+# Pry.config.correct_indent is a boolean option determining whether correction of indenting will occur (requires auto_indent to be set to true). Setting it to false disables correction.
+# Correction of indenting typically happens when a final end is entered for a block of code. Pry will determine the proper indentation level for the end and will adjust its indentation accordingly.
+# Indentation correction makes use of ansi codes that most terminals should support, but some may not. If you find that indentation correction is causing strange behavior on your terminal, you should consider turning this option off.
+# Default value: true
+
+# Pry.config.correct_indent = false
+
+#------------------------------------------------
+# Command prefix
+#------------------------------------------------
+# Pry.config.command_prefix is an option determining which command prefix (if any) should be used.
+# More detailed information on the command prefix can be found in the Command system section
+# Default value: "" (no prefix)
+
+# Pry.config.command_prefix = "%"
+
+#------------------------------------------------
+# History
+#------------------------------------------------
+# Pry.config.history is an option determining various properties of Pry history. It has three sub-properties:
+# Pry.config.history.should_save is a boolean option, it defaults to true
+# Pry.config.history.should_load is a boolean option, it defaults to true
+# Pry.config.history.file is a string option, it defaults to ~/.pry_history
+# More detailed information on Pry history can be found in the history section
+
+# Pry.config.history.file = "~/.irb_history"
+
+#------------------------------------------------
+# Editor
+#------------------------------------------------
+# Pry.config.editor is an option determining which editor will be used by default by Pry commands.
+# It accepts either a string or a callable (i.e a proc). More detailed information on this config option can be found in the Editor Integration section.
+# Default value: $EDITOR (or nano if $EDITOR not defined)
+
+# Pry.config.editor = "emacsclient"
+# Pry.config.editor = proc { |file, line| "emacsclient #{file} +#{line}" }
+
+#------------------------------------------------
+# Plugin loading
+#------------------------------------------------
+# Pry.config.should_load_plugins is a boolean option determining whether plugins should be loaded. Setting it to false disables plugin loading.
+# It may be useful to set this option in your .pryrc file or in your program when invoking Pry at runtime
+# Default value: true
+
+# Pry.config.should_load_plugins = false
+
+#------------------------------------------------
+# RC-file loading
+#------------------------------------------------
+# Pry.config.should_load_rc is a boolean option determining whether the rc file (.pryrc) should be loaded. Setting it to false disables RC file loading.
+# It only makes sense to set this option when invoking Pry at runtime, however RC file loading can be disabled at the command line by running the Pry executable with the -f option.
+# Default value: true
+
+# Pry.config.should_load_rc = false
+
+#------------------------------------------------
+# Cache size
+#------------------------------------------------
+# The _in_ and _out_ cache size
+# Pry.config.memory_size is an option determining the size of the _in_ and _out_ cache. More detailed information on this option is found in the Entering Input section.
+# Default value: 100
+
+# Pry.config.memory_size = 300
+
+#------------------------------------------------
+# Prompt
+#------------------------------------------------
+# Pry.config.prompt is an option determining the prompt displayed to the user when awaiting input.
+# Pry can accept two prompt-types for every prompt; the 'main prompt' and the 'wait prompt'. The main prompt is always used for the first line of input; the wait prompt is used in multi-line input to indicate that the current expression is incomplete and more lines of input are required.
+# A valid Pry prompt is either a single Proc object or a two element array of Proc objects. When an array is used the first element is the 'main prompt' and the last element is the 'wait prompt'. When a single Proc object is used it will be used for both the main prompt and the wait prompt.
+# Three parameters are passed into the prompt procs, the object that is the target of the session, the current nesting level, and a reference to the associated Pry instance. These objects can be used in the prompt, if desired.
+# Default value: Pry::DEFAULT_PROMPT
+
+# Pry.config.prompt = proc { |obj, nest_level, _| "#{obj}:#{nest_level}> " }          # Using one proc for both main and wait prompts
+# Pry.config.prompt = [ proc { "ENTER INPUT> " }, proc { "MORE INPUT REQUIRED!*" }]   # Alternatively, provide two procs; one for main and one for wait
+
+#------------------------------------------------
+# Prompt name
+#------------------------------------------------
+# Pry.config.prompt_name is an option determining the string that prefixes the pry prompt. It accepts any string value. You would typically customize this on a per project basis so that the pry prompt reflects the name of the project you are in.
+# Default value: pry
+
+# Pry.config.prompt_name = ''
+
+#------------------------------------------------
+# Input object
+#------------------------------------------------
+# Pry.config.input is an option determining the input object - the object from which Pry retrieves its lines of input. Pry accepts any object that implements the readline method. This includes IO objects, StringIO, Readline, File and custom objects.
+# Note it is important to ensure that the last line of input is exit if you are running non-interactively as the input object will be reset to Pry.config.input on EOF and potentially loop forever waiting for input.
+# Default value: Readline
+
+# Pry.config.input = StringIO.new("@x = 10\nexit")
+
+#------------------------------------------------
+# Output object
+#------------------------------------------------
+# Pry.config.output is an option determining the output object - the object to which Pry writes its output. Pry accepts any object that implements the puts method. This includes IO objects, StringIO, File and custom objects.
+# Default value: $stdout
+
+# Pry.config.output = StringIO.new
+
+#------------------------------------------------
+# Print object
+#------------------------------------------------
+# Pry.config.print is an option determining the print object - the Proc responsible for displaying expression evaluation output.
+# Two parameters are passed to the print Proc: these are the output object for the current session and the expression value to print. It is important that you write to the output object instead of just stdout so that all Pry output can be redirected if necessary.
+# Default value: Pry::DEFAULT_PRINT
+
+# Pry.config.print = proc { |output, value| output.puts "=> #{value.inspect}" }
+
+#------------------------------------------------
+# Exception handler
+#------------------------------------------------
+# Pry.config.exception_handler is an option determining the exception handler object - the Proc responsible for dealing with exceptions raised by user input to the REPL.
+# Three parameters are passed to the exception handler Proc: these are the output object for the current session, the exception object that was raised inside the Pry session, and a reference to the associated Pry instance. As mentioned in the print object section (above) it is important you write to the output object and not just stdout.
+# Default value: Pry::DEFAULT_EXCEPTION_HANDLER
+
+# Pry.config.exception_handler = proc do |output, exception, _|
+#   output.puts "#{exception.class}: #{exception.message}"
+#   output.puts "from #{exception.backtrace.first}"
+# end
+
+#------------------------------------------------
+# Exception whitelist
+#------------------------------------------------
+# Pry.config.exception_whitelist is an option determining which exceptions Pry should not catch.
+# Default value: [SystemExit, SignalException]
+
+# Pry.config.exception_whitelist = [SignalError, SystemExit, NoMemoryError]
+
+#------------------------------------------------
+# Exception window size
+#------------------------------------------------
+# Pry.config.default_window_size tells Pry how many lines cat --ex should show before and after the line that raised an Exception.
+# Default value: 5
+
+# Pry.config.default_window_size = 10
+
+#------------------------------------------------
+# Command set object
+#------------------------------------------------
+# Pry.config.commands is an option determining the commands object - the command set (Pry::CommandSet) responsible for providing the commands for the session.
+# Default value: Pry::Commands
+
+# Pry.config.commands = Pry::CommandSet.new do
+#     import_from Pry::Commands, "ls"
+#     command "greet" do |name|
+#         output.puts "hello #{name}"
+#     end
+# end
+
+#------------------------------------------------
+# Runtime customization
+#------------------------------------------------
+# As discussed in Per-instance customization some config options can be customized for a specific Pry instance. However, Pry also allows these config options to be changed at runtime.
+# Inside a Pry session there is a special _pry_ local variable which represents the Pry instance managing the current session. We can simply assign to the relevant accessor on the _pry_ object to change the option we want.
+# Note that for every config option that can be configured on instantiation there is a corresponding accessor:
+
+# _pry_.prompt = proc { "> " }
+# _pry_.input = StringIO.new("ls")
