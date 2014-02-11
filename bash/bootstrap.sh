@@ -45,6 +45,3 @@ source $DOTFILES_HOME/ruby/rbenv.sh
 source $DOTFILES_HOME/ruby/aliases.sh
 source $DOTFILES_HOME/ruby/heroku.sh
 
-# Veewee
-source $DOTFILES_HOME/veewee/aliases.sh
-
