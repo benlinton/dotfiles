@@ -45,3 +45,6 @@ source $DOTFILES_HOME/ruby/rbenv.sh
 source $DOTFILES_HOME/ruby/aliases.sh
 source $DOTFILES_HOME/ruby/heroku.sh
 
+# Node
+source $DOTFILES_HOME/node/nvm.sh
+
