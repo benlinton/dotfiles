@@ -4,4 +4,7 @@
 # init nvm
 # ---------------------------------------------------------------------------
 
-source $(brew --prefix nvm)/nvm.sh
+source ~/.nvm/nvm.sh
+
+# Disable homebrew for now
+# source $(brew --prefix nvm)/nvm.sh

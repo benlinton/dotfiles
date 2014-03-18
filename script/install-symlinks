@@ -21,6 +21,9 @@ ln -s ~/.dotfiles/ruby/gemrc.symlink ~/.gemrc
 ln -s ~/.dotfiles/ruby/irbrc.symlink ~/.irbrc
 ln -s ~/.dotfiles/ruby/pryrc.symlink ~/.pryrc
 
+# node
+ln -s ~/.dotfiles/node/npmrc.symlink ~/.npmrc
+
 # vim
 #ln -s ~/.dotfiles/vim/vim.symlink/ ~/.vim
 #ln -s ~/.dotfiles/vim/vimrc.symlink ~/.vimrc

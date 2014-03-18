@@ -18,6 +18,9 @@ unlink ~/.gemrc
 unlink ~/.irbrc
 unlink ~/.pryrc
 
+# node
+unlink ~/.npmrc
+
 # vim
 unlink ~/.vim
 unlink ~/.vimrc
