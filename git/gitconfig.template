@@ -8,6 +8,7 @@
 	lol = log --graph --decorate --pretty=oneline --abbrev-commit
 	lola = log --graph --decorate --pretty=oneline --abbrev-commit --all
 	lons = log --name-status
+	rollback = reset --soft HEAD^
 	unstage = reset HEAD
 [color]
 	diff = auto
