@@ -3,6 +3,7 @@
 	email =
 [alias]
 	aliases = config --get-regexp alias.*
+	b = branch
 	co = checkout
 	ds = diff --staged
 	lol = log --graph --decorate --pretty=oneline --abbrev-commit
