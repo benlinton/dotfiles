@@ -14,6 +14,7 @@ export DOTFILES_HOME=$HOME/.dotfiles
 # TODO: automatically load BASH_HOME/functions
 # ---------------------------------------------------------------------------
 source $BASH_HOME/functions/command_exists.sh
+source $BASH_HOME/functions/parse_git_branch.sh
 
 # ---------------------------------------------------------------------------
 # Load bash modules
