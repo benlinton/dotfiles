@@ -38,6 +38,9 @@ alias ll='ls -lahGF'
 #
 # ---------------------------------------------------------------------------
 
+# Reload the shell
+alias reload='exec bash -l'
+
 # Output filesize of everything in pwd
 alias du_pwd='du -hd 1'
 
