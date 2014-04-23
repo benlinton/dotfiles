@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------
 # Prompt
 #
-# TODO: write a script that makes it easy to switch prompts: 
+# TODO: write a script that makes it easy to switch prompts:
 #
 # prompt-manager
 # prompt-manager help
@@ -39,7 +39,7 @@
 
 if [ $(id -u) -eq 0 ];
 then # root
-  PS1='\[\e[1;31m\]\u@\h \w\$\[\e[0m\] '
+  PS1="\[\e[1;31m\]\u@\h \W\[\033[32m\]\$(parse_git_branch)\[\033[00m\] $ "
 else # normal
-  PS1='\[\e[1;32m\]\u@\h \w\$\[\e[0m\] '
+  PS1="\u@\h \W\[\033[32m\]\$(parse_git_branch)\[\033[00m\] $ "
 fi
