@@ -38,9 +38,6 @@ source $DOTFILES_HOME/osx/aliases.sh
 # TODO: automatically load .sh files
 # ---------------------------------------------------------------------------
 
-# iTerm2
-source $DOTFILES_HOME/iterm2/aliases.sh
-
 # Ruby
 source $DOTFILES_HOME/ruby/rbenv.sh
 source $DOTFILES_HOME/ruby/aliases.sh
