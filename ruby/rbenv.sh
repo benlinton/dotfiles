@@ -6,11 +6,11 @@
 
 # Add rbenv to PATH for user home
 test -d "$HOME/.rbenv/bin" &&
-  PATH="$HOME/.rbenv/bin:$PATH"
+  export PATH="$HOME/.rbenv/bin:$PATH"
 
 # Add rbenv to PATH for system wide install
 test -d "/usr/local/rbenv/bin" &&
-  PATH="/usr/local/rbenv/bin:$PATH"
+  export PATH="/usr/local/rbenv/bin:$PATH"
 
 # ---------------------------------------------------------------------------
 # rbenv init
