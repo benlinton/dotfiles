@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
+# Set local variables
+plist_filename="com.googlecode.iterm2.plist"
+saved_plist_path="$DOTFILES_HOME/iterm2/$plist_filename"
+installed_plist_path="$HOME/Library/Preferences/$plist_filename"
+
+# Functions
+log()   { printf -- "--> $*\n" ; return $? ; }
+warn()  { printf -- "--> $*\n" ; return $? ; }
+
+if [[ "$TERM_PROGRAM" == "iTerm.app" ]] ; then
+  warn "You appear to be running this script from within iTerm.app. To save"
+  warn "your current preferences please first quit iTerm and run this from"
+  warn "Terminal.app or an SSH session."
+
+elif ps wwwaux | grep -q 'iTerm\.app' >/dev/null ; then
+  warn "You appear to have iTerm.app currently running. Please first quit the"
+  warn "iTerm.app so your most recent prefences are saved."
+fi
+
+cp -f "$installed_plist_path" "$saved_plist_path"
+log "iTerm preferences backed up to: $saved_plist_path"
+log "Please commit the new preferences with git if applicable."
+
+exit $?
