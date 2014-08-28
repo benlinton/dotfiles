@@ -1,9 +1,24 @@
 #!/usr/bin/env bash
 
-# Editor aliases
-alias subl='/Applications/Sublime\ Text\ 2.app/Contents/SharedSupport/bin/subl'
-alias mate='/Applications/TextMate.app/Contents/SharedSupport/Support/bin/mate'
+# TODO: test for paths before setting aliases
+
+# ---------------------------------------------------------------------------
+# Sublime
+# ---------------------------------------------------------------------------
+alias subl="/Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl"
+#alias subl='/Applications/Sublime\ Text\ 2.app/Contents/SharedSupport/bin/subl'
+
+# ---------------------------------------------------------------------------
+# Textmate
+# ---------------------------------------------------------------------------
+#alias mate='/Applications/TextMate.app/Contents/SharedSupport/Support/bin/mate'
+
+# ---------------------------------------------------------------------------
+# MacVim
+# ---------------------------------------------------------------------------
 #alias mvim='/Applications/MacVim.app/Contents/...'
 
+# ---------------------------------------------------------------------------
 # Helper for opening Go2Shell app preferences
-alias open-go2shell-config='open -a Go2Shell --args config'
+# ---------------------------------------------------------------------------
+#alias open-go2shell-config='open -a Go2Shell --args config'
