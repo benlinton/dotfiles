@@ -1,0 +1,20 @@
+{
+    "config": {
+
+        // Set indent for code inside blocks, including media queries and nested rules.
+        "block-indent": 2,
+
+        // Remove all rulesets that contain nothing but spaces.
+        "remove-empty-rulesets": false,
+
+        // Set space before `{`.
+        "space-before-opening-brace": " ",
+
+        // Unify quotes style.
+        "quotes": "double",
+
+        // Set space before `}`.
+        "space-before-closing-brace": "\n"
+    }
+}
+
