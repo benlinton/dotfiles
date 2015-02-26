@@ -38,6 +38,9 @@ source $DOTFILES_HOME/osx/aliases.sh
 # TODO: automatically load .sh files
 # ---------------------------------------------------------------------------
 
+# Git
+source $DOTFILES_HOME/git/git.sh
+
 # Ruby
 source $DOTFILES_HOME/ruby/rbenv.sh
 source $DOTFILES_HOME/ruby/aliases.sh
