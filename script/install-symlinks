@@ -20,6 +20,7 @@ ln -s ~/.dotfiles/ruby/bundle.symlink/ ~/.bundle
 ln -s ~/.dotfiles/ruby/gemrc.symlink ~/.gemrc
 ln -s ~/.dotfiles/ruby/irbrc.symlink ~/.irbrc
 ln -s ~/.dotfiles/ruby/pryrc.symlink ~/.pryrc
+ln -s ~/.dotfiles/ruby/rspec.symlink ~/.rspec
 
 # node
 ln -s ~/.dotfiles/node/npmrc.symlink ~/.npmrc

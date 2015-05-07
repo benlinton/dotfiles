@@ -17,6 +17,7 @@ unlink ~/.bundle
 unlink ~/.gemrc
 unlink ~/.irbrc
 unlink ~/.pryrc
+unlink ~/.rspec
 
 # node
 unlink ~/.npmrc
