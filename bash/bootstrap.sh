@@ -44,8 +44,15 @@ source $DOTFILES_HOME/git/git.sh
 # Ruby
 source $DOTFILES_HOME/ruby/rbenv.sh
 source $DOTFILES_HOME/ruby/aliases.sh
-source $DOTFILES_HOME/ruby/heroku.sh
 
 # Node
 source $DOTFILES_HOME/node/nvm.sh
+
+# Heroku
+source $DOTFILES_HOME/heroku/heroku.sh
+
+# ---------------------------------------------------------------------------
+# Loads last
+# ---------------------------------------------------------------------------
+source $DOTFILES_HOME/direnv/direnv.sh
 
