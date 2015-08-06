@@ -6,7 +6,7 @@
 # Sublime
 # https://www.sublimetext.com/docs/3/osx_command_line.html
 # ------------------------------------------------------------------------------
-#alias subl="/Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl"
+alias subl="/Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl"
 #alias subl='/Applications/Sublime\ Text\ 2.app/Contents/SharedSupport/bin/subl'
 
 # ------------------------------------------------------------------------------
