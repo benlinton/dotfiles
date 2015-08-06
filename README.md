@@ -29,7 +29,7 @@ In terminal:
 
 Some files require templates (instead of symlinks) because they contain sensitive data.
 
-    ~/.dotfiles/script/gitconfig-update
+    ~/.dotfiles/script/gitconfig-restore
 
 #### Configure sensitive git settings
 
@@ -53,8 +53,8 @@ Update .gitconfig with your personal credentials:
 
 * `bash/` - contains core bash files required to load bash
 * `bin/` - executables available via $PATH
-* `modules/` - config files, data files, etc. grouped by library/feature/package
-* `script/` - executables not available via $PATH (e.g. dotfiles installers)
+* `modules/` - config files grouped by library/feature/package
+* `script/` - utility executables not available via $PATH (e.g. dotfiles installer)
 
 
 ## File extension magic
@@ -93,13 +93,13 @@ NOTE: This functionality does not currently support filenames with spaces.
 
 ## Bin commands
 
-* `crashplan-remote` - start up crashplan on a remote headless server
+* `crashplan-remote` - helps start crashplan on a remote headless server
 * `e` - shortcut to current editor
 * `git-wtf` - displays state of your git repository
-* `shell-restart` - reloads the shell without need to exit
+* `shell-restart` - reloads the shell without exiting
 * `slugify` - convert filenames into a web friendly format
 
 
-## Other useful commands
+## Useful commands cheatsheet
 
 * `alias` - List loaded aliases
