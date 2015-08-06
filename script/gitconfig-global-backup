@@ -9,7 +9,7 @@ THIS_DIR="$(dirname $0)"
 
 # Set destination file
 cd "$THIS_DIR/.."
-DEST_FILE="$(pwd)/git/gitconfig.template"
+DEST_FILE="$(pwd)/modules/git/gitconfig.template"
 
 # Set source file
 SRC_FILE=$HOME/.gitconfig
