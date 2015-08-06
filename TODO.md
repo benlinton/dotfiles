@@ -18,3 +18,22 @@ Add the following crashplan aliases for Mac only:
 
 * Only load nvm if it exists
 
+## Installer
+
+Support automatically symlinking and copying templates on install.  Either
+update or remove the `script/install` command.  Ideally I should use the same
+command to install/uninstall or update/backup.
+
+## Bootstrap
+
+Add function that spits out the module load order, then use that inside
+bootstrap and also provide a utility executable that prints the order
+to help with debugging and whatnot.
+
+## Vim
+
+Either add my vim configs or delete the directory from `modules/`.
+
+## Sublime
+
+Add script to backup and update sublime.
