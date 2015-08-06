@@ -5,9 +5,3 @@ alias du_pwd='du -hd 1'
 
 # Colorized, special characters (after dirs, executables, symlinks, etc.)
 alias ls='ls -GF'
-
-# Reload the shell
-alias reload='exec bash -l'
-
-
-
