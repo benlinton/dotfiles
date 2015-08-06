@@ -27,13 +27,14 @@ In terminal:
 
 #### Install template files
 
-Some files require templates (instead of symlinks) because they contain sensitive data.
+Some files require templates (instead of symlinks) because they contain
+sensitive data.
 
     ~/.dotfiles/script/gitconfig-restore
 
 #### Configure sensitive git settings
 
-Update .gitconfig with your personal credentials:
+Update `~/.gitconfig` with your personal credentials:
 
     git config --global user.name "Firstname Lastname"
     git config --global user.email "your_email@example.com"

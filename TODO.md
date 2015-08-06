@@ -24,6 +24,8 @@ Support automatically symlinking and copying templates on install.  Either
 update or remove the `script/install` command.  Ideally I should use the same
 command to install/uninstall or update/backup.
 
+When copying templates, prompt for sensitive data.
+
 ## Bootstrap
 
 Add function that spits out the module load order, then use that inside
