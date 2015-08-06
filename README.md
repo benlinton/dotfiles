@@ -23,13 +23,13 @@ In terminal:
 
 #### Install symlinks
 
-    ~/.dotfiles/script/install-symlinks
+    ~/.dotfiles/script/symlinks-install
 
 #### Install template files
 
 Some files require templates (instead of symlinks) because they contain sensitive data.
 
-    ~/.dotfiles/script/gitconfig-global-update
+    ~/.dotfiles/script/gitconfig-update
 
 #### Configure sensitive git settings
 
@@ -43,7 +43,7 @@ Update .gitconfig with your personal credentials:
 
 ## Uninstall
 
-    ~/.dotfiles/script/uninstall-symlinks
+    ~/.dotfiles/script/symlinks-uninstall
     rm -rf ~/.dotfiles
 
 
