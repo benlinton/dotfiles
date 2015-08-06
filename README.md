@@ -89,3 +89,17 @@ and finally `.bash.last.sh`.  During each pass, files will load in alphabetical
 order of directory names, then alphabetical order of file names.
 
 NOTE: This functionality does not currently support filenames with spaces.
+
+
+## Bin commands
+
+* `crashplan-remote` - start up crashplan on a remote headless server
+* `e` - shortcut to current editor
+* `git-wtf` - displays state of your git repository
+* `shell-restart` - reloads the shell without need to exit
+* `slugify` - convert filenames into a web friendly format
+
+
+## Other useful commands
+
+* `alias` - List loaded aliases
