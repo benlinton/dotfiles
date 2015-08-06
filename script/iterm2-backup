@@ -5,7 +5,7 @@ set -e
 
 # Set local variables
 plist_filename="com.googlecode.iterm2.plist"
-saved_plist_path="$DOTFILES_HOME/iterm2/$plist_filename"
+saved_plist_path="$DOTFILES_HOME/modules/iterm2/$plist_filename"
 installed_plist_path="$HOME/Library/Preferences/$plist_filename"
 
 # Functions

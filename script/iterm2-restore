@@ -5,8 +5,8 @@ set -e
 
 # Set local variables
 plist_filename="com.googlecode.iterm2.plist"
-saved_plist_path="$DOTFILES_HOME/iterm2/$plist_filename"
-installed_plist="$HOME/Library/Preferences/$plist_filename"
+saved_plist_path="$DOTFILES_HOME/modules/iterm2/$plist_filename"
+installed_plist_path="$HOME/Library/Preferences/$plist_filename"
 
 # Functions
 log()   { printf -- "--> $*\n" ; return $? ; }
@@ -27,7 +27,7 @@ fi
 
 if [[ $? -eq 0 ]] ; then
   cp -f "$saved_plist_path" "$installed_plist_path"
-  log "iTerm preferences restored to: $installed_plist"
+  log "iTerm preferences restored to: $installed_plist_path"
 else
   warn "Your iTerm preferences have not been changed."
   exit 3
