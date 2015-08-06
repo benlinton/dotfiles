@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# ---------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # bashrc is executed for interactive non-login shells,
 # while bash_profile is executed for login shells
-# ---------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 # Determine THIS_PATH; which should point to this file's directory (resolve
 # potential symlink if applicable)

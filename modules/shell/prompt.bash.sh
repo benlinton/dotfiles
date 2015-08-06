@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# ---------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 # Prompt
 #
 # TODO: write a script that makes it easy to switch prompts:
@@ -35,7 +35,7 @@
 # Support saving and reloading favorites?
 # Track history?
 # Set should set colors as well; list should list colors
-# ---------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 if [ $(id -u) -eq 0 ];
 then # root
