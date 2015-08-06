@@ -10,23 +10,23 @@ ln -s ~/.dotfiles/bash/bash_profile.symlink ~/.bash_profile
 ln -s ~/.dotfiles/bash/bashrc.symlink ~/.bashrc
 
 # git
-ln -s ~/.dotfiles/git/gitignore.symlink ~/.gitignore
+ln -s ~/.dotfiles/modules/git/gitignore.symlink ~/.gitignore
 
 # screen
-ln -s ~/.dotfiles/screen/screenrc.symlink ~/.screenrc
+ln -s ~/.dotfiles/modules/screen/screenrc.symlink ~/.screenrc
 
 # ruby
-ln -s ~/.dotfiles/ruby/bundle.symlink/ ~/.bundle
-ln -s ~/.dotfiles/ruby/gemrc.symlink ~/.gemrc
-ln -s ~/.dotfiles/ruby/irbrc.symlink ~/.irbrc
-ln -s ~/.dotfiles/ruby/pryrc.symlink ~/.pryrc
-ln -s ~/.dotfiles/ruby/rspec.symlink ~/.rspec
+ln -s ~/.dotfiles/modules/ruby/bundle.symlink/ ~/.bundle
+ln -s ~/.dotfiles/modules/ruby/gemrc.symlink ~/.gemrc
+ln -s ~/.dotfiles/modules/ruby/irbrc.symlink ~/.irbrc
+ln -s ~/.dotfiles/modules/ruby/pryrc.symlink ~/.pryrc
+ln -s ~/.dotfiles/modules/ruby/rspec.symlink ~/.rspec
 
 # node
-ln -s ~/.dotfiles/node/npmrc.symlink ~/.npmrc
+ln -s ~/.dotfiles/modules/node/npmrc.symlink ~/.npmrc
 
 # vim
-#ln -s ~/.dotfiles/vim/vim.symlink/ ~/.vim
-#ln -s ~/.dotfiles/vim/vimrc.symlink ~/.vimrc
-#ln -s ~/.dotfiles/vim/gvimrc.symlink ~/.gvimrc
-#ln -s ~/.dotfiles/vim/mvimrc.symlink ~/.mvimrc
+#ln -s ~/.dotfiles/modulesvim/vim.symlink/ ~/.vim
+#ln -s ~/.dotfiles/modulesvim/vimrc.symlink ~/.vimrc
+#ln -s ~/.dotfiles/modulesvim/gvimrc.symlink ~/.gvimrc
+#ln -s ~/.dotfiles/modulesvim/mvimrc.symlink ~/.mvimrc

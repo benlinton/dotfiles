@@ -39,7 +39,7 @@
 
 if [ $(id -u) -eq 0 ];
 then # root
-  PS1="\[\e[1;31m\]\u@\h \W\[\033[32m\]\$(parse_git_branch)\[\033[00m\] $ "
+  export PS1="\[\e[1;31m\]\u@\h \W\[\033[32m\]\$(parse_git_branch)\[\033[00m\] $ "
 else # normal
-  PS1="\u@\h \W\[\033[32m\]\$(parse_git_branch)\[\033[00m\] $ "
+  export PS1="\u@\h \W\[\033[32m\]\$(parse_git_branch)\[\033[00m\] $ "
 fi

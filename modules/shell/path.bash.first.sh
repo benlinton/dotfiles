@@ -5,17 +5,17 @@
 # ---------------------------------------------------------------------------
 
 # Put local sbin on front; override system sbin
-PATH="/usr/local/sbin:$PATH"
+export PATH="/usr/local/sbin:$PATH"
 
 # Put local bin on front; override system bin & local sbin
-PATH="/usr/local/bin:$PATH"
+export PATH="/usr/local/bin:$PATH"
 
 # Put $HOME/bin on front (if exists)
 test -d "$HOME/bin" &&
-PATH="$HOME/bin:$PATH"
+export PATH="$HOME/bin:$PATH"
 
 # Put $DOTFILES_HOME/bin on front
-PATH="$DOTFILES_HOME/bin:$PATH"
+export PATH="$DOTFILES_HOME/bin:$PATH"
 
 # ---------------------------------------------------------------------------
 # PATH - Append to End
@@ -23,11 +23,11 @@ PATH="$DOTFILES_HOME/bin:$PATH"
 
 # Put ~/Applications on rear (for OS X if exists)
 test -d "$HOME/Applications" &&
-PATH="$PATH:$HOME/Applications"
+export PATH="$PATH:$HOME/Applications"
 
 # ---------------------------------------------------------------------------
 # MANPATH
 # ---------------------------------------------------------------------------
 
 # Put local man on front of MANPATH
-MANPATH="/usr/local/man:$MANPATH"
+export MANPATH="/usr/local/man:$MANPATH"

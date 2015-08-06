@@ -23,7 +23,7 @@ unlink ~/.rspec
 unlink ~/.npmrc
 
 # vim
-unlink ~/.vim
-unlink ~/.vimrc
-unlink ~/.gvimrc
-unlink ~/.mvimrc
+# unlink ~/.vim
+# unlink ~/.vimrc
+# unlink ~/.gvimrc
+# unlink ~/.mvimrc

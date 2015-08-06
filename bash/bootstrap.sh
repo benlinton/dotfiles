@@ -1,58 +1,34 @@
-##
-# Core
+#!/usr/bin/env bash
+#
+# ---------------------------------------------------------------------------
 # First bash file loaded.
-##
+# ---------------------------------------------------------------------------
+#
+# TODO: support loading filenames with spaces
+# TODO: don't assume dotfiles resides in $HOME; auto-detect
 
 # ---------------------------------------------------------------------------
 # Export core constants
-# TODO: don't assume dotfiles resides in $HOME; auto-detect
 # ---------------------------------------------------------------------------
 export DOTFILES_HOME=$HOME/.dotfiles
 
 # ---------------------------------------------------------------------------
-# Load functions
-# TODO: automatically load BASH_HOME/functions
+# Load files that end with `.bash.first.sh`
 # ---------------------------------------------------------------------------
-source $BASH_HOME/functions/command_exists.sh
-source $BASH_HOME/functions/parse_git_branch.sh
-
-# ---------------------------------------------------------------------------
-# Load bash modules
-# TODO: automatically load .sh files
-# ---------------------------------------------------------------------------
-source $BASH_HOME/aliases.sh
-source $BASH_HOME/history.sh
-source $BASH_HOME/path.sh
-source $BASH_HOME/prompt.sh
+for module in $(find $DOTFILES_HOME -type f -iname '*.bash.first.sh' -print) ; do
+  source "$module"
+done
 
 # ---------------------------------------------------------------------------
-# Load OS modules
-# TODO: automatically load .sh files depending on OS
+# Load files that end with `.bash.sh`
 # ---------------------------------------------------------------------------
-
-# TODO: check for Darwin
-source $DOTFILES_HOME/osx/aliases.sh
-
-# ---------------------------------------------------------------------------
-# Load other modules
-# TODO: automatically load .sh files
-# ---------------------------------------------------------------------------
-
-# Git
-source $DOTFILES_HOME/git/git.sh
-
-# Ruby
-source $DOTFILES_HOME/ruby/rbenv.sh
-source $DOTFILES_HOME/ruby/aliases.sh
-
-# Node
-source $DOTFILES_HOME/node/nvm.sh
-
-# Heroku
-source $DOTFILES_HOME/heroku/heroku.sh
+for module in `find $DOTFILES_HOME -type f -iname '*.bash.sh' -print` ; do
+  source "$module"
+done
 
 # ---------------------------------------------------------------------------
-# Loads last
+# Load files that end with `.bash.last.sh`
 # ---------------------------------------------------------------------------
-source $DOTFILES_HOME/direnv/direnv.sh
-
+for module in `find $DOTFILES_HOME -type f -iname '*.bash.last.sh' -print` ; do
+  source "$module"
+done
