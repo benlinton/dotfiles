@@ -13,7 +13,7 @@
 # the call to `source` is redirected from /dev/null to ensure it doesn't
 # accidentally read from the pipe.
 # ------------------------------------------------------------------------------
-function find_and_source() {
+find_and_source() {
   while read -d '' filename; do
     source "${filename}" </dev/null
   done < <(find "${2}" -iname "${1}" -type f -print0)
