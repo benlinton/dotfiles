@@ -1,34 +1,25 @@
 #!/usr/bin/env bash
 #
 # ------------------------------------------------------------------------------
-# First bash file loaded.
+# This bootstrap file loads all bash functions and modules
 # ------------------------------------------------------------------------------
-#
-# TODO: support loading filenames with spaces
-# TODO: don't assume dotfiles resides in $HOME; auto-detect
 
 # ------------------------------------------------------------------------------
-# Export core constants
+# Source bash functions first
 # ------------------------------------------------------------------------------
-export DOTFILES_HOME=$HOME/.dotfiles
+for filename in $BASH_HOME/functions/*; do source $filename; done
 
 # ------------------------------------------------------------------------------
-# Load files that end with `.bash.first.sh`
+# Source files that end with `.bash.first.sh`
 # ------------------------------------------------------------------------------
-for module in $(find $DOTFILES_HOME -type f -iname '*.bash.first.sh' -print) ; do
-  source "$module"
-done
+find_and_source "*.bash.first.sh" $DOTFILES_HOME
 
 # ------------------------------------------------------------------------------
-# Load files that end with `.bash.sh`
+# Source files that end with `.bash.sh`
 # ------------------------------------------------------------------------------
-for module in `find $DOTFILES_HOME -type f -iname '*.bash.sh' -print` ; do
-  source "$module"
-done
+find_and_source "*.bash.sh" $DOTFILES_HOME
 
 # ------------------------------------------------------------------------------
-# Load files that end with `.bash.last.sh`
+# Source files that end with `.bash.last.sh`
 # ------------------------------------------------------------------------------
-for module in `find $DOTFILES_HOME -type f -iname '*.bash.last.sh' -print` ; do
-  source "$module"
-done
+find_and_source "*.bash.last.sh" $DOTFILES_HOME
