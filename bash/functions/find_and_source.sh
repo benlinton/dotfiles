@@ -14,7 +14,7 @@
 # accidentally read from the pipe.
 # ------------------------------------------------------------------------------
 find_and_source() {
-  while read -d '' filename; do
-    source "${filename}" </dev/null
+  while read -d '' file; do
+    source "${file}" </dev/null
   done < <(find "${2}" -iname "${1}" -type f -print0)
 }

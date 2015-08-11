@@ -7,7 +7,7 @@
 # ------------------------------------------------------------------------------
 # Source bash functions first
 # ------------------------------------------------------------------------------
-for filename in $BASH_HOME/functions/*; do source $filename; done
+for file in $BASH_HOME/functions/*; do source $file; done
 
 # ------------------------------------------------------------------------------
 # Source files that end with `.bash.first.sh`
