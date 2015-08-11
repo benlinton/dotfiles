@@ -60,7 +60,7 @@ NOTE: This functionality is not fully supported yet.
 
 * `crashplan-remote` - helps start crashplan on a remote headless server
 * `git-wtf` - displays state of your git repository
-* `shell-restart` - reloads the shell without exiting
+* `reload` - reloads the shell without exiting
 * `slugify` - convert filenames into a web friendly format
 
 
