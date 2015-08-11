@@ -23,4 +23,5 @@ DOTFILES_HOME=`dirname "${this_dir}"`
 export DOTFILES_HOME=`dirname "${DOTFILES_HOME}"`
 
 # Source functions and modular bash files
+# TODO: make sure this works with spaces in $DOTFILES_HOME
 source $DOTFILES_HOME/bootstrap.sh
