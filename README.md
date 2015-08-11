@@ -59,7 +59,6 @@ NOTE: This functionality is not fully supported yet.
 ## Bin commands
 
 * `crashplan-remote` - helps start crashplan on a remote headless server
-* `e` - shortcut to current editor
 * `git-wtf` - displays state of your git repository
 * `shell-restart` - reloads the shell without exiting
 * `slugify` - convert filenames into a web friendly format
