@@ -41,3 +41,7 @@ Either add my vim configs or delete the directory from `modules/`.
 ## Sublime
 
 Add script to backup and update sublime.
+
+## Pow
+
+    .pow -> /Users/warden/Library/Application Support/Pow/Hosts
