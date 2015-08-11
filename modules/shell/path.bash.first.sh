@@ -21,13 +21,3 @@ export PATH="$DOTFILES_HOME/bin:$PATH"
 # PATH - Append to End
 # ------------------------------------------------------------------------------
 
-# Put ~/Applications on rear (for OS X if exists)
-test -d "$HOME/Applications" &&
-export PATH="$PATH:$HOME/Applications"
-
-# ------------------------------------------------------------------------------
-# MANPATH
-# ------------------------------------------------------------------------------
-
-# Put local man on front of MANPATH
-export MANPATH="/usr/local/man:$MANPATH"
