@@ -25,7 +25,7 @@ while read -d '' src_path; do
 
   # If target already exists
   if [ -e "${target_path}" ]; then
-    echo "[WARNING] Already exists: ${target_path}"
+    echo "[FAILURE] Already exists: ${target_path}"
 
   # If target doesn't exist yet, create symlink
   else

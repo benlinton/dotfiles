@@ -1,28 +1,32 @@
 #!/usr/bin/env bash
 
-# TODO: instead, run install-symlinks command with an --uninstall flag
+# ------------------------------------------------------------------------------
+# Find all `.symlink` files in $DOTFILES_HOME and unlink them in $HOME
+#
+# TODO: consolidate this functionality into the symlinks-install command
+# ------------------------------------------------------------------------------
 
-# bash
-unlink ~/.bash_profile
-unlink ~/.bashrc
-unlink ~/.inputrc
+# Initialize local variables
+this_dir="$(dirname $0)"
+find_root=`dirname "${this_dir}"`
+find_name="*.symlink"
 
-# git
-unlink ~/.gitignore
+# Find all `.symlink` files in $DOTFILES_HOME and symlink them in $HOME
+while read -d '' src_path; do
 
-# screen
-unlink ~/.screenrc
+  # Extract filename without `.symlink` extension
+  target_filename=`basename "${src_path}"`
+  target_filename_without_ext="${target_filename%.*}"
+  target_path="${HOME}/.${target_filename_without_ext}"
 
-# ruby
-unlink ~/.bundle
-unlink ~/.gemrc
-unlink ~/.irbrc
-unlink ~/.pryrc
-unlink ~/.rspec
+  # If target symlink already exists, unlink
+  if [ -h "${target_path}" ]; then
+    echo "[SUCCESS] Unlinking: ${target_path}"
+    unlink "${target_path}"
 
-# node
-unlink ~/.npmrc
+  # If target doesn't exist yet
+  else
+    echo "[FAILURE] Symlink missing: ${target_path}"
+  fi
 
-# vim
-unlink ~/.vim
-unlink ~/.vimrc
+done < <(find "${find_root}" -iname "${find_name}" -print0)
