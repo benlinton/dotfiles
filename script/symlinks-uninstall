@@ -6,8 +6,18 @@
 # TODO: consolidate this functionality into the symlinks-install command
 # ------------------------------------------------------------------------------
 
+# Set `this_dir`
+# Point to this file's directory and resolves any potential symlinks
+this_dir="${BASH_SOURCE[0]}"
+if [ -h "${this_dir}" ] ; then
+  while [ -h "${this_dir}" ] ; do this_dir=`readlink "${this_dir}"`; done
+fi
+pushd . > /dev/null
+cd `dirname ${this_dir}` > /dev/null
+this_dir=`pwd`;
+popd  > /dev/null
+
 # Initialize local variables
-this_dir="$(dirname $0)"
 find_root=`dirname "${this_dir}"`
 find_name="*.symlink"
 
