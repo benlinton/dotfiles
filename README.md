@@ -19,22 +19,34 @@ This repository attempts to support:
 
 * `bash/` - contains core bash files required to load bash
 * `bin/` - executables available via $PATH
+* `docs/` - help files, tutorials, cheatsheets, etc.
 * `modules/` - config files grouped by library/feature/package
-* `script/` - utility executables not available via $PATH (e.g. dotfiles installer)
+* `script/` - utility executables not available via $PATH (e.g. installers)
 
 
 ## File extension magic
+
+#### `.bash.sh`
+
+The `bash/bootstrap.sh` will find all files appended with `.bash.sh` and load
+them using the built-in `source` command. The bootstrap loader will take three
+passes:
+
+1. first loading files ending in `.bash.first.sh`
+2. then `.bash.sh`
+3. and finally `.bash.last.sh`
+
+During each pass, files will load in alphabetical order directory names followed
+by filenames.
 
 #### `.symlink`
 
 Files or directories ending with `.symlink` will get automatically symlinked
 into the `$HOME` directly when you run the dotfiles installer.
 
-The symlink source should not start with a dot, and the symlink installer will
-automatically add a preceeding dot to the symlink destination for you. For
-example, `~/.bashrc@ -> ~/.dotfiles/bash/bashrc.symlink`
-
-NOTE: This functionality is not fully supported yet.
+NOTE: The symlink source should not start with a dot, and the symlink installer
+will automatically add a preceeding dot to the symlink destination for you. For
+example, `~/.bashrc -> ~/.dotfiles/bash/bashrc.symlink`
 
 #### `.template`
 
@@ -42,19 +54,6 @@ Files or directories ending with `.template` will get copied into the `$HOME`
 directory when you run the dotfiles installer.
 
 NOTE: This functionality is not fully supported yet.
-
-#### `.bash.sh`
-
-The `bash/bootstrap.sh` will look for all files that end in `.bash.sh` and load
-them using the built-in `source` command.  Since it's important for certain
-files to load before or after all others, we've provided `.bash.first.sh` and
-`.bash.last.sh` to fine tune load order.
-
-The bootstrap will take three passes, loading `.bash.first.sh`, then `.bash.sh`,
-and finally `.bash.last.sh`.  During each pass, files will load in alphabetical
-order of directory names, then alphabetical order of file names.
-
-NOTE: This functionality does not currently support filenames with spaces.
 
 
 ## Bin commands
@@ -74,6 +73,8 @@ NOTE: This functionality does not currently support filenames with spaces.
 
 #### Install symlinks
 
+Find dotfiles ending with `.symlink` and link in `$HOME`:
+
     ~/.dotfiles/script/symlinks-install
 
 #### Install template files
@@ -85,7 +86,7 @@ sensitive data.
 
 #### Configure sensitive git settings
 
-Update `~/.gitconfig` with your personal credentials:
+Update `~/.gitconfig` with your secret credentials:
 
     git config --global user.name "Firstname Lastname"
     git config --global user.email "your_email@example.com"
