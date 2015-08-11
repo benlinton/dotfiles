@@ -3,6 +3,8 @@
 # ------------------------------------------------------------------------------
 # bashrc is executed for interactive non-login shells,
 # while bash_profile is executed for login shells
+#
+# Requires: readlink, dirname
 # ------------------------------------------------------------------------------
 
 # Determine THIS_PATH; which should point to this file's directory (resolve
@@ -16,9 +18,11 @@ cd `dirname ${THIS_PATH}` > /dev/null
 THIS_PATH=`pwd`;
 popd  > /dev/null
 
-# Initialize BASH_HOME
-BASH_HOME="${THIS_PATH}"
-export BASH_HOME
+# Export BASH_HOME
+export BASH_HOME="${THIS_PATH}"
 
-# Bootstrap handles loading modular bash files
+# Export DOTFILES_HOME - parent directory for BASH_HOME
+export DOTFILES_HOME=`dirname "${BASH_HOME}"`
+
+# Source functions and modular bash files
 source $BASH_HOME/bootstrap.sh
