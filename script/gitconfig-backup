@@ -5,10 +5,10 @@
 # TODO: optionally use ARG[1] if provided
 
 # Set directory that this script is located in
-THIS_DIR="$(dirname $0)"
+this_dir="$(dirname $0)"
 
 # Set destination file
-cd "$THIS_DIR/.."
+cd "${this_dir}/.."
 DEST_FILE="$(pwd)/modules/git/gitconfig.template"
 
 # Set source file
