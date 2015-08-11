@@ -13,41 +13,6 @@ This repository attempts to support:
 * Windows XP (using Cygwin; minimal support)
 
 
-## Install
-
-#### Clone dotfiles
-
-In terminal:
-
-    git clone https://github.com/benlinton/dotfiles.git ~/.dotfiles
-
-#### Install symlinks
-
-    ~/.dotfiles/script/symlinks-install
-
-#### Install template files
-
-Some files require templates (instead of symlinks) because they contain
-sensitive data.
-
-    ~/.dotfiles/script/gitconfig-restore
-
-#### Configure sensitive git settings
-
-Update `~/.gitconfig` with your personal credentials:
-
-    git config --global user.name "Firstname Lastname"
-    git config --global user.email "your_email@example.com"
-    git config --global github.user "your_github_username"
-    git config --global github.token "1234567890abcdefghijklmnop"
-
-
-## Uninstall
-
-    ~/.dotfiles/script/symlinks-uninstall
-    rm -rf ~/.dotfiles
-
-
 ## Architecture
 
 #### Directory structure
@@ -101,6 +66,38 @@ NOTE: This functionality does not currently support filenames with spaces.
 * `slugify` - convert filenames into a web friendly format
 
 
-## Useful commands cheatsheet
+## Install
 
-* `alias` - List loaded aliases
+#### Clone dotfiles
+
+    git clone https://github.com/benlinton/dotfiles.git ~/.dotfiles
+
+#### Install symlinks
+
+    ~/.dotfiles/script/symlinks-install
+
+#### Install template files
+
+Some files require templates (instead of symlinks) because they contain
+sensitive data.
+
+    ~/.dotfiles/script/gitconfig-restore
+
+#### Configure sensitive git settings
+
+Update `~/.gitconfig` with your personal credentials:
+
+    git config --global user.name "Firstname Lastname"
+    git config --global user.email "your_email@example.com"
+    git config --global github.user "your_github_username"
+    git config --global github.token "1234567890abcdefghijklmnop"
+
+#### Install Sublime command-line (optional)
+
+    ~/.dotfiles/script/sublime-install
+
+
+## Uninstall
+
+    ~/.dotfiles/script/symlinks-uninstall
+    rm -rf ~/.dotfiles
