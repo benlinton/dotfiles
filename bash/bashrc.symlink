@@ -7,19 +7,19 @@
 # Requires: readlink, dirname
 # ------------------------------------------------------------------------------
 
-# Determine THIS_PATH; which should point to this file's directory (resolve
-# potential symlink if applicable)
-THIS_PATH="${BASH_SOURCE[0]}";
-if ([ -h "${THIS_PATH}" ]) then
-  while([ -h "${THIS_PATH}" ]) do THIS_PATH=`readlink "${THIS_PATH}"`; done
+# Set `this_dir`
+# Point to this file's directory and resolves any potential symlinks
+this_dir="${BASH_SOURCE[0]}"
+if [ -h "${this_dir}" ] ; then
+  while [ -h "${this_dir}" ] ; do this_dir=`readlink "${this_dir}"`; done
 fi
 pushd . > /dev/null
-cd `dirname ${THIS_PATH}` > /dev/null
-THIS_PATH=`pwd`;
+cd `dirname ${this_dir}` > /dev/null
+this_dir=`pwd`;
 popd  > /dev/null
 
 # Export BASH_HOME
-export BASH_HOME="${THIS_PATH}"
+export BASH_HOME="${this_dir}"
 
 # Export DOTFILES_HOME - parent directory for BASH_HOME
 export DOTFILES_HOME=`dirname "${BASH_HOME}"`
