@@ -1,32 +1,36 @@
 #!/usr/bin/env bash
+
+# ------------------------------------------------------------------------------
+# Find all `.symlink` files in $DOTFILES_HOME and symlink them in $HOME
+#
+# Requires: readlink, dirname, ln, find
 #
 # TODO: add support for installing to a different directory
 # TODO: add the --uninstall flag and have uninstaller use this script
-# TODO: make this use an array and a loop
-# TODO: automatically find all .symlink files
+# TODO: support --force to delete existing target files
+# ------------------------------------------------------------------------------
 
-# bash
-ln -s ~/.dotfiles/bash/bash_profile.symlink ~/.bash_profile
-ln -s ~/.dotfiles/bash/bashrc.symlink ~/.bashrc
+# Initialize local variables
+this_dir="$(dirname $0)"
+find_root=`dirname "${this_dir}"`
+find_name="*.symlink"
 
-# git
-ln -s ~/.dotfiles/modules/git/gitignore.symlink ~/.gitignore
+# Find all `.symlink` files in $DOTFILES_HOME and symlink them in $HOME
+while read -d '' src_path; do
 
-# screen
-ln -s ~/.dotfiles/modules/screen/screenrc.symlink ~/.screenrc
+  # Extract filename without `.symlink` extension
+  target_filename=`basename "${src_path}"`
+  target_filename_without_ext="${target_filename%.*}"
+  target_path="${HOME}/.${target_filename_without_ext}"
 
-# ruby
-ln -s ~/.dotfiles/modules/ruby/bundle.symlink/ ~/.bundle
-ln -s ~/.dotfiles/modules/ruby/gemrc.symlink ~/.gemrc
-ln -s ~/.dotfiles/modules/ruby/irbrc.symlink ~/.irbrc
-ln -s ~/.dotfiles/modules/ruby/pryrc.symlink ~/.pryrc
-ln -s ~/.dotfiles/modules/ruby/rspec.symlink ~/.rspec
+  # If target already exists
+  if [ -e "${target_path}" ]; then
+    echo "[WARNING] Already exists: ${target_path}"
 
-# node
-ln -s ~/.dotfiles/modules/node/npmrc.symlink ~/.npmrc
+  # If target doesn't exist yet, create symlink
+  else
+    echo "[SUCCESS] Symlinking: ${target_path} -> ${src_path}"
+    ln -s "${src_path}" "${target_path}" </dev/null
+  fi
 
-# vim
-#ln -s ~/.dotfiles/modulesvim/vim.symlink/ ~/.vim
-#ln -s ~/.dotfiles/modulesvim/vimrc.symlink ~/.vimrc
-#ln -s ~/.dotfiles/modulesvim/gvimrc.symlink ~/.gvimrc
-#ln -s ~/.dotfiles/modulesvim/mvimrc.symlink ~/.mvimrc
+done < <(find "${find_root}" -iname "${find_name}" -print0)

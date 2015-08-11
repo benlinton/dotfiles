@@ -5,6 +5,7 @@
 # bash
 unlink ~/.bash_profile
 unlink ~/.bashrc
+unlink ~/.inputrc
 
 # git
 unlink ~/.gitignore
@@ -23,7 +24,5 @@ unlink ~/.rspec
 unlink ~/.npmrc
 
 # vim
-# unlink ~/.vim
-# unlink ~/.vimrc
-# unlink ~/.gvimrc
-# unlink ~/.mvimrc
+unlink ~/.vim
+unlink ~/.vimrc
