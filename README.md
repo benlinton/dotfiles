@@ -29,15 +29,15 @@ This repository attempts to support:
 #### `.bash.sh`
 
 The `bash/bootstrap.sh` will find all files appended with `.bash.sh` and load
-them using the built-in `source` command. The bootstrap loader will take three
-passes:
+them using the built-in `source` command. The bootstrap loader will take
+multiple passes:
 
 1. first loading files ending in `.bash.first.sh`
 2. then `.bash.sh`
 3. and finally `.bash.last.sh`
 
-During each pass, files will load in alphabetical order directory names followed
-by filenames.
+During each pass, files will load in alphabetical order of directory name
+followed by filename.
 
 #### `.symlink`
 
@@ -72,7 +72,7 @@ NOTE: This functionality is not fully supported yet.
 
 #### Install symlinks
 
-Find dotfiles ending with `.symlink` and link in `$HOME`:
+Find dotfiles ending with `.symlink` and symlink in `$HOME`:
 
     ~/.dotfiles/script/symlinks-install
 
@@ -92,9 +92,10 @@ Update `~/.gitconfig` with your secret credentials:
     git config --global github.user "your_github_username"
     git config --global github.token "1234567890abcdefghijklmnop"
 
-#### Install Sublime command-line (optional)
+#### Run optional installers
 
     ~/.dotfiles/script/sublime-install
+    ~/.dotfiles/script/iterm2-restore
 
 
 ## Uninstall
