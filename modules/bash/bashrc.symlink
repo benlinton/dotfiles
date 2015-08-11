@@ -18,11 +18,9 @@ cd `dirname ${this_dir}` > /dev/null
 this_dir=`pwd`;
 popd  > /dev/null
 
-# Export BASH_HOME
-export BASH_HOME="${this_dir}"
-
-# Export DOTFILES_HOME - parent directory for BASH_HOME
-export DOTFILES_HOME=`dirname "${BASH_HOME}"`
+# Export DOTFILES_HOME - two directories up
+DOTFILES_HOME=`dirname "${this_dir}"`
+export DOTFILES_HOME=`dirname "${DOTFILES_HOME}"`
 
 # Source functions and modular bash files
-source $BASH_HOME/bootstrap.sh
+source $DOTFILES_HOME/bootstrap.sh
