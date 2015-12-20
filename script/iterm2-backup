@@ -4,9 +4,9 @@
 set -e
 
 # Set local variables
-plist_filename="com.googlecode.iterm2.plist"
-saved_plist_path="$DOTFILES_HOME/modules/iterm2/$plist_filename"
-installed_plist_path="$HOME/Library/Preferences/$plist_filename"
+filename="com.googlecode.iterm2.plist"
+saved_path="$DOTFILES_HOME/modules/iterm2/$filename"
+installed_path="$HOME/Library/Preferences/$filename"
 
 # Functions
 log()   { printf -- "--> $*\n" ; return $? ; }
@@ -22,8 +22,8 @@ elif ps wwwaux | grep -q 'iTerm\.app' >/dev/null ; then
   warn "iTerm.app so your most recent prefences are saved."
 fi
 
-cp -f "$installed_plist_path" "$saved_plist_path"
-log "iTerm preferences backed up to: $saved_plist_path"
+cp -f "$installed_path" "$saved_path"
+log "iTerm preferences backed up to: $saved_path"
 log "Please commit the new preferences with git if applicable."
 
 exit $?
