@@ -131,6 +131,7 @@ Update `~/.gitconfig` with your secret credentials:
 #### Run optional installers
 
     ~/.dotfiles/script/sublime-install
+    ~/.dotfiles/script/sublime-restore
     ~/.dotfiles/script/iterm2-restore
 
 
