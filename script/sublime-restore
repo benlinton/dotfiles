@@ -14,7 +14,7 @@ log()   { printf -- "--> $*\n" ; return $? ; }
 warn()  { printf -- "--> $*\n" ; return $? ; }
 
 if [[ $? -eq 0 ]] ; then
-  mkdir -p $(dirname "$installed_path")
+  mkdir -p "$(dirname "$installed_path")"
   cp -f "$saved_path" "$installed_path"
   log "$app_name preferences restored to: $installed_path"
 else
