@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+src="/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl"
+target="/usr/local/bin/subl"
+
+# If source file missing
+if [ ! -e "${src}" ]; then
+  echo "[FAILURE] Missing source file: ${src}"
+  exit 1
+fi
+
+# If target symlink already exists
+if [ -e "${target}" ]; then
+  echo "[FAILURE] Symlink already exists: ${target}"
+  exit 1
+fi
+
+# Create symlink
+ln -s "${src}" "${target}"
+echo "[SUCCESS] Symlinked ${target} -> ${src}"

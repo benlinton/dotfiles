@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+# Exit immediately if a command exits with a non-zero status.
+set -e
+
+# Set local variables
+app_name="Sublime Text 3"
+filename="Preferences.sublime-settings"
+saved_path="$DOTFILES_HOME/modules/sublime/$filename"
+installed_path="$HOME/Library/Application Support/Sublime Text 3/Packages/User/$filename"
+
+# Functions
+log()   { printf -- "--> $*\n" ; return $? ; }
+warn()  { printf -- "--> $*\n" ; return $? ; }
+
+cp -f "$installed_path" "$saved_path"
+log "$app_name preferences backed up to: $saved_path"
+log "Please commit the new preferences with git if applicable."
+
+exit $?
