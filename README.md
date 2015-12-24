@@ -110,7 +110,11 @@ The bin commands will be made available by adding the `bin/` directory to
 
 Find dotfiles ending with `.symlink` and symlink in `$HOME`:
 
-    ~/.dotfiles/script/symlinks-install
+    ~/.dotfiles/bin/dotfiles --install
+
+#### Print dotfiles help
+
+    dotfiles --help
 
 #### Install template files
 
@@ -137,5 +141,20 @@ Update `~/.gitconfig` with your secret credentials:
 
 ## Uninstall
 
-    ~/.dotfiles/script/symlinks-uninstall
+    dotfiles --uninstall
     rm -rf ~/.dotfiles
+
+
+## Testing
+
+Tests are written with [bats](https://github.com/sstephenson/bats).
+
+#### Install bats
+
+Assuming OS X with homebrew installed (otherwise see the bats documentation):
+
+    brew install bats
+
+#### Run tests
+
+    bats $DOTFILES_HOME/bin/tests

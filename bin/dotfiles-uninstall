@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+
+# ------------------------------------------------------------------------------
+# Find all `.symlink` files in $DOTFILES_HOME and unlink them in $HOME
+#
+# TODO: consolidate this functionality into the symlinks-install command
+# ------------------------------------------------------------------------------
+
+# Set `this_dir`
+# Point to this file's directory and resolves any potential symlinks
+this_dir="${BASH_SOURCE[0]}"
+if [ -h "${this_dir}" ] ; then
+  while [ -h "${this_dir}" ] ; do this_dir=`readlink "${this_dir}"`; done
+fi
+pushd . > /dev/null
+cd `dirname ${this_dir}` > /dev/null
+this_dir=`pwd`;
+popd  > /dev/null
+
+# Initialize local variables
+find_root=`dirname "${this_dir}"`
+find_name="*.symlink"
+
+# Find all `.symlink` files in $DOTFILES_HOME and symlink them in $HOME
+while read -d '' src_path; do
+
+  # Extract filename without `.symlink` extension
+  target_filename=`basename "${src_path}"`
+  target_filename_without_ext="${target_filename%.*}"
+  target_path="${HOME}/.${target_filename_without_ext}"
+
+  # If target symlink already exists, unlink
+  if [ -h "${target_path}" ]; then
+    echo "[SUCCESS] Unlinking: ${target_path}"
+    unlink "${target_path}"
+
+  # If target doesn't exist yet
+  else
+    echo "[FAILURE] Symlink missing: ${target_path}"
+  fi
+
+done < <(find "${find_root}" -iname "${find_name}" -print0)
+
