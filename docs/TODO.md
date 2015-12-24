@@ -1,8 +1,6 @@
 # TODO
 
-## iTerm 2
-
-To use my iTerm 2 settings, copy com.googlecode.iterm2.plist into ~/Library/Preferences.
+Move all TODOs into github issues.
 
 ## Crashplan
 
@@ -37,10 +35,6 @@ to help with debugging and whatnot.
 ## Vim
 
 Either add my vim configs or delete the directory from `modules/`.
-
-## Sublime
-
-Add script to backup and update sublime.
 
 ## Pow
 

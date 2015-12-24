@@ -1,6 +1,6 @@
 # Dotfiles
 
-These are my versioned configuration files for bash, git, screen, and etc.
+These are my versioned configuration files for bash, git, and etc.
 
 
 ## Environments
@@ -13,58 +13,29 @@ This repository attempts to support:
 * Windows XP (using Cygwin; minimal support)
 
 
-## Architecture
-
-#### Overview
+## Structure
 
 * `bin/` - executables available via $PATH
 * `docs/` - help files, tutorials, cheatsheets, etc.
 * `functions/` - autoloaded global functions
 * `modules/` - autoloaded config files grouped by library/feature/package
-* `script/` - utility executables not available via $PATH (e.g. installers)
-* `bootstrap.sh` - core script that loads all functions and modules
+* `init.sh` - main script that loads all functions and modules
 
-#### Bootstrap
 
-The `bootstrap.sh` exports global shell variables, loads functions, loads
-modules, etc. It is the core script that all other dotfiles activity gets
-routed through.
+## How it works
 
-The bootstrap file is sourced by very thin `.bashrc` and `.bash_profile` that
-are symlinked via the `modules/bash/` module.  Once the symlink installer has
-been ran then the bootstrap script will begin working it's magic.
+#### `*.symlink` magic
 
-#### Functions
+All files and directories ending with `.symlink` will get automatically
+symlinked into the `$HOME` directory when you run the `dotfiles` installer.
 
-The `bootstrap.sh` loader will `source` functions before any modules load so
-all functions are available to all modules.
+The `dotfiles` installer is safe in that it will never destroy existing files,
+it can run multiple times with the same outcome (i.e. idempotent), and you can
+undo all changes with the uninstaller. You'll only need to run the dotfiles
+installer once.
 
-Functions will load by alphabetic order of filename. Ideally, each file should
-contain one function.
-
-#### Autoload `*.bash.sh`
-
-After loading functions, the `bootstrap.sh` loader will find all files appended
-with `.bash.sh` and load them using the built-in `source` command. The
-bootstrap loader will take multiple passes to load bash files:
-
-1. first loading files ending in `.bash.first.sh`
-2. then `.bash.sh`
-3. and finally `.bash.last.sh`
-
-During each pass, files will load in alphabetical order of directory name
-followed by filename.
-
-#### Auto-install `*.symlink`
-
-Files or directories ending with `.symlink` will get automatically symlinked
-into the `$HOME` directly when you run the dotfiles installer.
-
-NOTE: The symlink source should not start with a dot, and the symlink installer
-will automatically add a preceeding dot to the symlink destination for you. For
-example, `~/.bashrc -> ~/.dotfiles/bash/bashrc.symlink`
-
-After running the symlink installer, your $HOME folder will look something like:
+After running the `dotfiles` installer, your `$HOME` folder will look something
+like:
 
     $ ls -l `find ~ -maxdepth 1 -type l -print`
     lrwxr-xr-x  1 myuser  staff  57 Aug 11 11:28 /Users/myuser/.bash_profile@ -> /Users/myuser/.dotfiles/modules/bash/bash_profile.symlink
@@ -73,31 +44,59 @@ After running the symlink installer, your $HOME folder will look something like:
     lrwxr-xr-x  1 myuser  staff  50 Aug 11 11:28 /Users/myuser/.gemrc@ -> /Users/myuser/.dotfiles/modules/ruby/gemrc.symlink
     lrwxr-xr-x  1 myuser  staff  53 Aug 11 11:28 /Users/myuser/.gitignore@ -> /Users/myuser/.dotfiles/modules/git/gitignore.symlink
     lrwxr-xr-x  1 myuser  staff  52 Aug 11 11:28 /Users/myuser/.inputrc@ -> /Users/myuser/.dotfiles/modules/bash/inputrc.symlink
-    lrwxr-xr-x  1 myuser  staff  50 Aug 11 11:28 /Users/myuser/.irbrc@ -> /Users/myuser/.dotfiles/modules/ruby/irbrc.symlink
-    lrwxr-xr-x  1 myuser  staff  50 Aug 11 11:28 /Users/myuser/.npmrc@ -> /Users/myuser/.dotfiles/modules/node/npmrc.symlink
-    lrwxr-xr-x  1 myuser  staff  51 Oct 17  2014 /Users/myuser/.pow@ -> /Users/myuser/Library/Application Support/Pow/Hosts
-    lrwxr-xr-x  1 myuser  staff  50 Aug 11 11:28 /Users/myuser/.pryrc@ -> /Users/myuser/.dotfiles/modules/ruby/pryrc.symlink
-    lrwxr-xr-x  1 myuser  staff  50 Aug 11 11:28 /Users/myuser/.rspec@ -> /Users/myuser/.dotfiles/modules/ruby/rspec.symlink
-    lrwxr-xr-x  1 myuser  staff  55 Aug 11 11:28 /Users/myuser/.screenrc@ -> /Users/myuser/.dotfiles/modules/screen/screenrc.symlink
-    lrwxr-xr-x  1 myuser  staff  47 Aug 11 11:28 /Users/myuser/.vim@ -> /Users/myuser/.dotfiles/modules/vim/vim.symlink
-    lrwxr-xr-x  1 myuser  staff  49 Aug 11 11:28 /Users/myuser/.vimrc@ -> /Users/myuser/.dotfiles/modules/vim/vimrc.symlink
+    ...
 
-#### Auto-install `*.template`
+NOTE: The symlinked source files should never begin with a `.` dot. The symlink
+installer will automatically add a preceeding dot to the symlink destination files.
+For example, `~/.bashrc -> ~/.dotfiles/bash/bashrc.symlink`.
+
+#### Load `init.sh`
+
+The `init.sh` file is the one and only main bootstrapper script that loads
+global shell variables, loads globally available functions, and autoloads
+module scripts.
+
+The `init.sh` script is sourced by very thin `.bashrc` and `.bash_profile` which
+get symlinked into your $HOME directory via the `dotfiles` installer.  These
+files can be found within the `modules/bash/` directory.
+
+#### Load global functions
+
+The `init.sh` loader will first `source` functions before any modules so all
+global functions are available within each module.
+
+Functions will load in alphabetic order of their filename. Ideally, each file
+should contain a single function or a group of tightly knit functions.
+
+#### Load `*.autoload.sh` module files
+
+After loading functions, the `init.sh` bootstrapper will find all files appended
+with `.autoload.sh` and load them using the built-in `source` command. The
+bootstrap loader will take multiple passes to load bash files:
+
+1. first loading files ending in `.autoload.first.sh`
+2. then `.autoload.sh`
+3. and finally `.autoload.last.sh`
+
+During each pass, files will load in alphabetical order of directory name
+followed by filename. Autoloaded files are typically found within the `modules/`
+directory.
+
+#### Copy `*.template` files
 
 Files or directories ending with `.template` will get copied into the `$HOME`
 directory when you run the dotfiles installer.
 
-NOTE: This functionality is not fully supported yet.
+_NOTE: This functionality is not supported yet._
 
 #### Bin commands
 
 The bin commands will be made available by adding the `bin/` directory to
-`$PATH` via the `bash` module.
+`$PATH` from within the `bash` module.
 
-* `crashplan-remote` - helps start crashplan on a remote headless server
-* `git-wtf` - displays state of your git repository
+* `dotfiles` - install, uninstall, and more
 * `reload` - reloads the shell without exiting
-* `slugify` - convert filenames into a web friendly format
+
 
 
 ## Install
@@ -108,20 +107,18 @@ The bin commands will be made available by adding the `bin/` directory to
 
 #### Install symlinks
 
-Find dotfiles ending with `.symlink` and symlink in `$HOME`:
+Finds dotfiles ending with `.symlink` and symlinks them in `$HOME`:
 
     ~/.dotfiles/bin/dotfiles --install
 
-#### Print dotfiles help
-
-    dotfiles --help
-
 #### Install template files
+
+_NOTE: Eventually we'll use the `dotfiles` command for these tasks._
 
 Some files require templates (instead of symlinks) because they contain
 sensitive data.
 
-    ~/.dotfiles/script/gitconfig-restore
+    ~/.dotfiles/modules/git/gitconfig-restore
 
 #### Configure sensitive git settings
 
@@ -134,9 +131,9 @@ Update `~/.gitconfig` with your secret credentials:
 
 #### Run optional installers
 
-    ~/.dotfiles/script/sublime-install
-    ~/.dotfiles/script/sublime-restore
-    ~/.dotfiles/script/iterm2-restore
+    ~/.dotfiles/modules/sublime/sublime-install
+    ~/.dotfiles/modules/sublime/sublime-restore
+    ~/.dotfiles/modules/iterm/iterm2-restore
 
 
 ## Uninstall
