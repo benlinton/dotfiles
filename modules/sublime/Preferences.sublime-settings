@@ -1,27 +1,19 @@
-// Settings in here override those in "Default/Preferences.sublime-settings",
-// and are overridden in turn by file type specific settings.
 {
-
-  // Note that the font_face and font_size are overridden in the platform
-  // specific settings file, for example, "Preferences (Linux).sublime-settings".
-  // Because of this, setting them here will have no effect: you must set them
-  // in your User File Preferences.
-  "font_size": 13,
-
-  // Columns in which to display vertical rulers
-  "rulers": [80],
-
-	// The number of spaces a tab is considered equal to
-  "tab_size": 2,
-
-  // Set to true to insert spaces when tab is pressed
-  "translate_tabs_to_spaces": true,
-
-  // Set to true to removing trailing white space on save
-  "trim_trailing_white_space_on_save": true,
-
-  // Set to true to ensure the last line of the file ends in a newline
-  // character when saving
-  "ensure_newline_at_eof_on_save": true,
-
+	"bold_folder_labels": true,
+	"ensure_newline_at_eof_on_save": true,
+	"fade_fold_buttons": false,
+	"font_size": 13,
+	"highlight_line": true,
+	"ignored_packages":
+	[
+		"Vintage"
+	],
+	"rulers":
+	[
+		80
+	],
+	"tab_size": 2,
+	"translate_tabs_to_spaces": true,
+	"trim_trailing_white_space_on_save": true,
+	"word_wrap": false
 }
