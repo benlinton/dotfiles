@@ -7,8 +7,8 @@
 this_dir="$(dirname $0)"
 
 # Set source file
-cd "$this_dir/.."
-SRC_FILE="$(pwd)/modules/git/gitconfig.template"
+cd "$this_dir"
+SRC_FILE="$(pwd)/gitconfig.template"
 
 # Set destination file
 DEST_FILE=$HOME/.gitconfig
