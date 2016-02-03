@@ -109,7 +109,7 @@ The bin commands will be made available by adding the `bin/` directory to
 
 Finds dotfiles ending with `.symlink` and symlinks them in `$HOME`:
 
-    ~/.dotfiles/bin/dotfiles --install
+    ~/.dotfiles/bin/dotfiles-install
 
 #### Install template files
 
@@ -133,7 +133,8 @@ Update `~/.gitconfig` with your secret credentials:
 
     ~/.dotfiles/modules/sublime/sublime-install
     ~/.dotfiles/modules/sublime/sublime-restore
-    ~/.dotfiles/modules/iterm/iterm2-restore
+    ~/.dotfiles/modules/iterm2/iterm2-restore
+    ~/.dotfiles/modules/osx/defaults.sh
 
 
 ## Uninstall
