@@ -5,7 +5,9 @@
 #
 # Resources:
 #   - https://mths.be/osx
+#   - https://www.skrauth.de/blog/2015/osx-settings-via-terminal/
 #   - https://gist.github.com/cowboy/3118588
+#   - http://www.tekrevue.com/tip/the-complete-guide-to-customizing-mac-os-xs-dock-with-terminal/
 # ------------------------------------------------------------------------------
 
 # Might as well ask for password up-front, right?
@@ -27,6 +29,20 @@ defaults write NSGlobalDomain NSDocumentSaveNewDocumentsToCloud -bool false
 # Check for software updates daily, not just once per week
 defaults write com.apple.SoftwareUpdate ScheduleFrequency -int 1
 
+# Expand save panel by default
+defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode -bool true
+defaults write NSGlobalDomain NSNavPanelExpandedStateForSaveMode2 -bool true
+
+# Expand print panel by default
+defaults write NSGlobalDomain PMPrintingExpandedStateForPrint -bool true
+defaults write NSGlobalDomain PMPrintingExpandedStateForPrint2 -bool true
+
+# Disable Notification Center and remove the menu bar icon
+# launchctl unload -w /System/Library/LaunchAgents/com.apple.notificationcenterui.plist 2> /dev/null
+
+# Disable capturing windows shadow in screenshots
+defaults write com.apple.screencapture disable-shadow -bool true
+
 # ------------------------------------------------------------------------------
 # SSD
 # ------------------------------------------------------------------------------
@@ -42,7 +58,7 @@ sudo tmutil disablelocal
 defaults write NSGlobalDomain ApplePressAndHoldEnabled -bool false
 
 # Set a fast keyboard repeat rate
-defaults write NSGlobalDomain KeyRepeat -float 0.5
+defaults write NSGlobalDomain KeyRepeat -float 1.0
 
 # Set a shorter delay until key repeat
 defaults write NSGlobalDomain InitialKeyRepeat -int 12
@@ -55,7 +71,9 @@ defaults write ApplePressAndHoldEnabled -bool false
 # ------------------------------------------------------------------------------
 
 # Set faster mouse tracking speed
-defaults write com.apple.mouse.scaling -float 3.0
+# Doesn't seem to work for OSX 10.11
+# defaults write com.apple.trackpad.scaling -float 1.0
+# defaults write com.apple.mouse.scaling -float 1.0
 
 # Enable secondary click on multitouch mouse
 defaults write com.apple.driver.AppleBluetoothMultitouch.mouse MouseButtonMode TwoButton
@@ -73,8 +91,8 @@ defaults write com.apple.finder NewWindowTargetPath -string "file://${HOME}/"
 
 # Finder: show icons for hard drives, servers, and removable media on the desktop
 defaults write com.apple.finder ShowExternalHardDrivesOnDesktop -bool true
-defaults write com.apple.finder ShowHardDrivesOnDesktop -bool true
-defaults write com.apple.finder ShowMountedServersOnDesktop -bool true
+defaults write com.apple.finder ShowHardDrivesOnDesktop -bool false
+defaults write com.apple.finder ShowMountedServersOnDesktop -bool false
 defaults write com.apple.finder ShowRemovableMediaOnDesktop -bool true
 
 # Finder: show hidden files by default
@@ -106,6 +124,54 @@ defaults write com.apple.desktopservices DSDontWriteNetworkStores -bool true
 
 # Finder: show the ~/Library folder
 chflags nohidden ~/Library
+
+# ------------------------------------------------------------------------------
+# Dock
+# ------------------------------------------------------------------------------
+
+# Set the orientation of the dock
+defaults write com.apple.dock orientation left
+
+# Automatically hide and show the Dock
+defaults write com.apple.dock autohide -bool true
+
+# Set the icon size of Dock items
+defaults write com.apple.dock tilesize -int 48
+
+# Remove the auto-hiding Dock delay
+# defaults write com.apple.dock autohide-delay -float 0
+
+# Remove the animation when hiding/showing the Dock
+# defaults write com.apple.dock autohide-time-modifier -float 0
+
+# ------------------------------------------------------------------------------
+# Spaces
+# ------------------------------------------------------------------------------
+
+# Don’t automatically rearrange Spaces based on most recent use
+defaults write com.apple.dock mru-spaces -bool false
+
+# ------------------------------------------------------------------------------
+# Dashboard
+# ------------------------------------------------------------------------------
+
+# Disable Dashboard
+defaults write com.apple.dashboard mcx-disabled -bool true
+
+# Don’t show Dashboard as a Space
+defaults write com.apple.dock dashboard-in-overlay -bool true
+
+# ------------------------------------------------------------------------------
+# Google Chrome
+# ------------------------------------------------------------------------------
+
+# Disable the all too sensitive backswipe on trackpads
+defaults write com.google.Chrome AppleEnableSwipeNavigateWithScrolls -bool false
+defaults write com.google.Chrome.canary AppleEnableSwipeNavigateWithScrolls -bool false
+
+# Disable the all too sensitive backswipe on Magic Mouse
+defaults write com.google.Chrome AppleEnableMouseSwipeNavigateWithScrolls -bool false
+defaults write com.google.Chrome.canary AppleEnableMouseSwipeNavigateWithScrolls -bool false
 
 # ------------------------------------------------------------------------------
 # Restart applications                                                  
