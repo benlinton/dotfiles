@@ -4,5 +4,7 @@
 # init nvm
 # ------------------------------------------------------------------------------
 
-export NVM_DIR=~/.nvm
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+export NVM_DIR="$HOME/.nvm"
+export NVM_INIT="/usr/local/opt/nvm/nvm.sh"
+
+[ -s $NVM_INIT ] && . $NVM_INIT
