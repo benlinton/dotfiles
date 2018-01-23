@@ -109,16 +109,16 @@ The bin commands will be made available by adding the `bin/` directory to
 
 Finds dotfiles ending with `.symlink` and symlinks them in `$HOME`:
 
-    ~/.dotfiles/bin/dotfiles-install
+    ~/.dotfiles/bin/dotfiles --install
 
 #### Install template files
-
-_NOTE: Eventually we'll use the `dotfiles` command for these tasks._
 
 Some files require templates (instead of symlinks) because they contain
 sensitive data.
 
     ~/.dotfiles/modules/git/gitconfig-restore
+
+_NOTE: Eventually we'll use the `dotfiles` command for these tasks._
 
 #### Configure sensitive git settings
 
