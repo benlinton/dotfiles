@@ -44,3 +44,6 @@ while read -d '' src_path; do
   fi
 
 done < <(find "${find_root}" -iname "${find_name}" -print0)
+
+# Reload the shell
+exec $SHELL -l
