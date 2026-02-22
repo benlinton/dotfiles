@@ -2,58 +2,60 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Commands
+## Overview
 
-```bash
-# Install symlinks into $HOME
-~/.dotfiles/bin/dotfiles --install
+Personal dotfiles managed with [Chezmoi](https://chezmoi.io) (file management/templating) and [Ansible](https://github.com/ansible/ansible) (system provisioning). The philosophy is **minimal customization** to stay productive on shared environments.
 
-# Uninstall symlinks from $HOME
-dotfiles --uninstall
+## Chezmoi file naming conventions
 
-# Reload the shell without exiting
-reload
+Chezmoi uses filename prefixes/suffixes to determine how files are handled:
 
-# Run tests (requires bats: brew install bats)
-bats $DOTFILES_HOME/bin/tests
-```
+- `dot_*` → becomes a dotfile (e.g., `dot_bashrc` → `~/.bashrc`)
+- `run_once_*` → script run once on first apply
+- `run_onchange_*` → script re-run whenever its content changes
+- `*.tmpl` → processed as a Go template before applying
+- `dot_bootstrap/` → becomes `~/.bootstrap/` (Ansible playbook location)
 
 ## Architecture
 
-This is a modular dotfiles management system for bash, git, and other tools.
+### Bootstrap flow
 
-### Bootstrap Flow
+1. Chezmoi is initialized via `sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply $GITHUB_USERNAME`
+2. `run_once_install_ansible.sh` installs Ansible (supports macOS/Debian/Fedora) and runs `~/.bootstrap/setup.yml`
+3. `run_onchange_bootstrap.sh.tmpl` re-runs the Ansible playbook whenever `dot_bootstrap/setup.yml` changes (uses sha256 of the file in the script header as the change trigger)
+4. `dot_bootstrap/setup.yml` is the Ansible playbook — currently installs packages and JetBrains Mono Nerd Font
 
-Shell startup sources `modules/bash/bashrc.symlink` or `bash_profile.symlink`, which sources `init.sh`. `init.sh` loads everything in this order:
+### Template data
 
-1. All files in `functions/` (global shell functions, available to all modules)
-2. All `*.autoload.first.sh` files (PATH, MANPATH — order-sensitive setup)
-3. All `*.autoload.sh` files (general configuration)
-4. All `*.autoload.last.sh` files (hooks like direnv that must run last)
+`.chezmoi.toml.tmpl` prompts for `name`, `email`, and `githubUser` on first run. These values are available in templates as `{{ .chezmoi.config.data.name }}` etc.
 
-Within each phase, files load alphabetically by directory then filename.
+### Shell config
 
-### File Naming Conventions
+- `dot_bash_profile` → sources `~/.bashrc` for login shells
+- `dot_bashrc` → sets `EDITOR=vim`, history options, and PATH (`~/.local/bin`)
+- `dot_inputrc` → readline config (history search with arrows, case-insensitive completion)
+- `dot_zshrc` → currently empty placeholder
 
-| Pattern | Behavior |
-|---|---|
-| `*.symlink` | Symlinked into `$HOME` as a dotfile (e.g., `bashrc.symlink` → `~/.bashrc`). Files must NOT start with a dot. |
-| `*.autoload.first.sh` | Sourced in phase 1 (path setup) |
-| `*.autoload.sh` | Sourced in phase 2 (general config) |
-| `*.autoload.last.sh` | Sourced in phase 3 (late hooks) |
-| `*.template` | Intended to be copied to `$HOME` (not yet implemented by installer) |
+## Key commands
 
-### Module Structure
+```bash
+# Apply dotfiles from source dir
+chezmoi apply
 
-Each directory under `modules/` groups configuration for a single tool or feature. A module can contain any mix of the above file types. The `$DOTFILES_HOME` environment variable points to the repo root and is set by `bashrc.symlink`.
+# See what changes would be made
+chezmoi diff
 
-### Adding a New Module
+# Edit a managed file (opens in $EDITOR, applies on save)
+chezmoi edit ~/.bashrc
 
-1. Create `modules/<name>/` directory
-2. Add `*.autoload.sh` files for shell configuration
-3. Add `*.symlink` files for dotfiles that need to live in `$HOME`
-4. No registration needed — `init.sh` discovers files automatically
+# Re-run a run_once script after changes
+chezmoi state delete-bucket --bucket=scriptOnce && chezmoi apply
 
-### Installer Behavior
+# Run Ansible playbook manually
+ansible-playbook ~/.bootstrap/setup.yml --ask-become-pass
+```
 
-`bin/dotfiles-install` finds all `*.symlink` files recursively and creates `~/.<name>` symlinks. It is idempotent and non-destructive (skips files that already exist). `bin/dotfiles-uninstall` reverses this.
+## Notes
+
+- `CLAUDE.md` and `README.md` are listed in `.chezmoiignore` — they are not deployed to the home directory
+- The `_legacy/` directory (tracked in git) contains the old pre-Chezmoi dotfiles structure for reference
