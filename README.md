@@ -12,7 +12,7 @@ Over time I found that approach slowed me down on shared environments.
 As a result I now aim for minimal customization.
 
 
-## Setup
+## Quick start
 
 For macOS install `brew` first.
 
@@ -25,6 +25,10 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply $GITHUB_USERNAME
 ## Key commands
 
 ```bash
+# Init on a fresh machine
+chezmoi init --apply github_username
+chezmoi init --apply --source /local/path/to/dotfiles   
+
 # Apply dotfiles from source dir
 chezmoi apply
 
