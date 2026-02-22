@@ -25,9 +25,11 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply $GITHUB_USERNAME
 ## Key commands
 
 ```bash
-# Init on a fresh machine
-chezmoi init --apply github_username
-chezmoi init --apply --source /local/path/to/dotfiles   
+# Recommended init approach - clones the repo into ~/.local/share/chezmoi/ 
+chezmoi init --apply $GITHUB_USERNAME
+
+# (Optional) Init for non-standard local path - then add sourceDir to the generated chezmoi.toml config
+chezmoi init --apply --source /local/path/to/dotfiles 
 
 # Apply dotfiles from source dir
 chezmoi apply
@@ -42,5 +44,5 @@ chezmoi edit ~/.bashrc
 chezmoi state delete-bucket --bucket=scriptOnce && chezmoi apply
 
 # Run Ansible playbook manually
-ansible-playbook ~/.bootstrap/setup.yml --ask-become-pass
+ansible-playbook ~/.bootstrap/setup.yml --ask-become-pass  
 ```
