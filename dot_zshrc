@@ -2,3 +2,10 @@
 
 # Source shared shell config
 source "$HOME/.shellrc"
+
+# ------------------------------------------------------------------------------
+# Prompt (zsh-specific)
+# ------------------------------------------------------------------------------
+# _PC and _PR set in .shellrc; %{...%} marks non-printing sequences for zsh
+setopt PROMPT_SUBST
+PROMPT="%{${_PC}%}%n@%m:%~%# %{${_PR}%} "

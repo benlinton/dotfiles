@@ -2,6 +2,19 @@
 # Keep this file POSIX-compatible (no bash or zsh specific syntax)
 
 # ------------------------------------------------------------------------------
+# Prompt color
+# ------------------------------------------------------------------------------
+# Red for root, green for SSH sessions, blue for local workstations
+if [ "$(id -u)" = "0" ]; then
+  _PC=$(printf '\033[31m')   # red (root)
+elif [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ] || [ -n "$SSH_CONNECTION" ]; then
+  _PC=$(printf '\033[32m')   # green (SSH)
+else
+  _PC=$(printf '\033[34m')   # blue (local)
+fi
+_PR=$(printf '\033[0m')      # reset
+
+# ------------------------------------------------------------------------------
 # Editor
 # ------------------------------------------------------------------------------
 export EDITOR=vim

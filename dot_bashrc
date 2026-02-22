@@ -22,6 +22,12 @@ export HISTCONTROL=ignoreboth
 export HISTFILESIZE=10000
 
 # ------------------------------------------------------------------------------
+# Prompt (bash-specific)
+# ------------------------------------------------------------------------------
+# _PC and _PR set in .shellrc; \[...\] marks non-printing sequences for bash
+PS1="\[${_PC}\]\u@\h:\w\$\[${_PR}\] "
+
+# ------------------------------------------------------------------------------
 # nvm bash completion (bash-specific) (OPTIONAL)
 # ------------------------------------------------------------------------------
 if [ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ]; then
