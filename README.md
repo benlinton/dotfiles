@@ -1,15 +1,42 @@
 # dotfiles
 
-Utilizes [chezmoi](https://chezmoi.io) as the dotfile manager 
-with [ansible](https://github.com/ansible/ansible) for provisioning.
+This project uses:
+- [chezmoi](https://chezmoi.io) - as dotfile manager 
+- [ansible](https://github.com/ansible/ansible) - for provisioning
+
+
+## Philosophy
+
+Long ago, I heavily customized my tools and environments for maximize efficiency. 
+Over time I found that approach slowed me down on shared environments.
+As a result I now aim for minimal customization.
+
 
 ## Setup
 
-    export GITHUB_USERNAME=benlinton
-    sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply $GITHUB_USERNAME
+For macOS install `brew` first.
 
-## Customization philosophy
+```bash
+export GITHUB_USERNAME=benlinton
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply $GITHUB_USERNAME
+```
 
-Long ago, I would heavily customize my tools and environments for maximize efficiency. 
-Over time I found that approach slowed me down while using shared environments.
-As a result I now aim for minimal customization.
+
+## Key commands
+
+```bash
+# Apply dotfiles from source dir
+chezmoi apply
+
+# See what changes would be made
+chezmoi diff
+
+# Edit a managed file (opens in $EDITOR, applies on save)
+chezmoi edit ~/.bashrc
+
+# Re-run a run_once script after changes
+chezmoi state delete-bucket --bucket=scriptOnce && chezmoi apply
+
+# Run Ansible playbook manually
+ansible-playbook ~/.bootstrap/setup.yml --ask-become-pass
+```
