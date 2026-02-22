@@ -31,14 +31,23 @@ Chezmoi uses filename prefixes/suffixes to determine how files are handled:
 
 ### Shell config
 
+- `dot_shellrc` → shared POSIX-compatible config sourced by both `.bashrc` and `.zshrc`; sets `EDITOR`, `HISTSIZE`, PATH, and optional tool integrations (pyenv, nvm)
 - `dot_bash_profile` → sources `~/.bashrc` for login shells
-- `dot_bashrc` → sets `EDITOR=vim`, history options, and PATH (`~/.local/bin`)
+- `dot_bashrc` → sources `~/.shellrc`, adds bash-specific history settings and nvm bash completion
+- `dot_zshrc` → sources `~/.shellrc`
 - `dot_inputrc` → readline config (history search with arrows, case-insensitive completion)
-- `dot_zshrc` → currently empty placeholder
+
+When adding shell config that should apply to both bash and zsh, put it in `dot_shellrc` and keep it POSIX-compatible (no bash/zsh-specific syntax).
 
 ## Key commands
 
 ```bash
+# Init (clones repo into ~/.local/share/chezmoi/ and applies)
+chezmoi init --apply $GITHUB_USERNAME
+
+# Init for non-standard local path (then add sourceDir to ~/.config/chezmoi/chezmoi.toml)
+chezmoi init --apply --source /local/path/to/dotfiles
+
 # Apply dotfiles from source dir
 chezmoi apply
 
@@ -57,5 +66,4 @@ ansible-playbook ~/.bootstrap/setup.yml --ask-become-pass
 
 ## Notes
 
-- `CLAUDE.md` and `README.md` are listed in `.chezmoiignore` — they are not deployed to the home directory
-- The `_legacy/` directory (tracked in git) contains the old pre-Chezmoi dotfiles structure for reference
+- `.chezmoiignore` excludes `CLAUDE.md`, `README.md`, `docs/`, and `.gitignore` from being deployed to the home directory
