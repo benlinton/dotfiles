@@ -1,7 +1,7 @@
 # dotfiles
 
-Utilizes [Chezmoi](https://chezmoi.io) as the dotfile manager 
-with [Ansible](https://github.com/ansible/ansible) for provisioning.
+Utilizes [chezmoi](https://chezmoi.io) as the dotfile manager 
+with [ansible](https://github.com/ansible/ansible) for provisioning.
 
 ## Setup
 

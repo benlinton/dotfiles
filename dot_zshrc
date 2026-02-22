@@ -1,0 +1,4 @@
+# zshrc is executed for interactive shells
+
+# Source shared shell config
+source "$HOME/.shellrc"

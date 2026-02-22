@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
+# ------------------------------------------------------------------------------
 # bashrc is executed for interactive non-login shells,
 # while bash_profile is executed for login shells
+# ------------------------------------------------------------------------------
+
+# Source shared shell config
+source "$HOME/.shellrc"
 
 # ------------------------------------------------------------------------------
-# History
-# ------------------------------------------------------------------------------
-export EDITOR=vim
-
-# ------------------------------------------------------------------------------
-# History
+# History (bash-specific)
 # ------------------------------------------------------------------------------
 # For HISTCONTROL:
 #   ignorespace flag tells bash to ignore commands that start with spaces
@@ -17,12 +17,13 @@ export EDITOR=vim
 #   ignoreboth flag is equivalent to ignorespace:ignoredups
 export HISTCONTROL=ignoreboth
 
-# Set maximum history size
+# HISTFILESIZE controls how many lines are saved to disk (bash-specific)
+# HISTSIZE (shared) controls in-memory history size
 export HISTFILESIZE=10000
-export HISTSIZE=10000
 
 # ------------------------------------------------------------------------------
-# PATH
+# nvm bash completion (bash-specific) (OPTIONAL)
 # ------------------------------------------------------------------------------
-# Add $HOME/.local/bin to front of PATH (if exists)
-test -d "$HOME/.local/bin" && export PATH="$HOME/.local/bin:$PATH"
+if [ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ]; then
+  \. "/usr/local/opt/nvm/etc/bash_completion.d/nvm"
+fi
