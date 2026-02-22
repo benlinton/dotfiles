@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-#
-# A portable command that reloads the shell without destroying 
-# the current environment variables.
-
-exec $SHELL -l

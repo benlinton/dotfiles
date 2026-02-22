@@ -1,0 +1,12 @@
+# History prefix search with up/down arrows
+"\e[A": history-search-backward
+"\e[B": history-search-forward
+
+# Better completion UX
+set show-all-if-ambiguous on
+set completion-ignore-case on
+
+# Quality-of-life defaults (portable)
+set bell-style none
+set colored-stats on
+set visible-stats on

@@ -1,0 +1,95 @@
+---
+- name: Workstation setup
+  hosts: localhost
+  become: true
+  connection: local
+  gather_facts: true
+
+  tasks:
+    - name: Get my user
+      ansible.builtin.set_fact:
+        remote_regular_user: "{{ ansible_env.SUDO_USER or ansible_user_id }}"
+
+    # --- Install packages ---
+
+    - name: Install packages (Fedora)
+      when: ansible_distribution == "Fedora"
+      ansible.builtin.dnf:
+        name:
+          - git
+          - gh
+          - htop
+          - tmux
+          - vim
+        state: present
+
+    - name: Add GitHub CLI apt key (Debian/Ubuntu)
+      when: ansible_os_family == "Debian"
+      ansible.builtin.get_url:
+        url: https://cli.github.com/packages/githubcli-archive-keyring.gpg
+        dest: /usr/share/keyrings/githubcli-archive-keyring.gpg
+        mode: "0644"
+
+    - name: Add GitHub CLI apt repository (Debian/Ubuntu)
+      when: ansible_os_family == "Debian"
+      ansible.builtin.apt_repository:
+        repo: "deb [arch={{ ansible_architecture }} signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main"
+        state: present
+        filename: github-cli
+
+    - name: Install packages (Debian/Ubuntu)
+      when: ansible_os_family == "Debian"
+      ansible.builtin.apt:
+        name:
+          - git
+          - gh
+          - htop
+          - tmux
+          - vim
+        state: present
+        update_cache: true
+
+    - name: Install packages (macOS)
+      when: ansible_os_family == "Darwin"
+      become: false
+      community.general.homebrew:
+        name:
+          - git
+          - gh
+          - htop
+          - tmux
+          - vim
+        state: present
+
+    # --- Install fonts ---
+
+    - name: Ensure fonts directory (Linux)
+      when: ansible_system == "Linux"
+      ansible.builtin.file:
+        path: "~{{ remote_regular_user }}/.fonts"
+        state: directory
+        mode: "0755"
+        owner: "{{ remote_regular_user }}"
+
+    - name: Check if Jetbrains Mono exists (Linux)
+      when: ansible_system == "Linux"
+      ansible.builtin.shell: "ls ~{{ remote_regular_user }}/.fonts/JetBrainsMonoNerd*FontMono*"
+      register: jetbrains_mono_exists
+      ignore_errors: true
+      changed_when: false
+
+    - name: Download Jetbrains Mono (Linux)
+      when: ansible_system == "Linux" and jetbrains_mono_exists is failed
+      ansible.builtin.unarchive:
+        src: https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/JetBrainsMono.zip
+        dest: "~{{ remote_regular_user }}/.fonts/"
+        remote_src: true
+        mode: "0755"
+        owner: "{{ remote_regular_user }}"
+
+    - name: Install JetBrains Mono Nerd Font (macOS)
+      when: ansible_os_family == "Darwin"
+      become: false
+      community.general.homebrew_cask:
+        name: font-jetbrains-mono-nerd-font
+        state: present

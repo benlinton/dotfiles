@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+# bashrc is executed for interactive non-login shells,
+# while bash_profile is executed for login shells
+
+# ------------------------------------------------------------------------------
+# History
+# ------------------------------------------------------------------------------
+export EDITOR=vim
+
+# ------------------------------------------------------------------------------
+# History
+# ------------------------------------------------------------------------------
+# For HISTCONTROL:
+#   ignorespace flag tells bash to ignore commands that start with spaces
+#   ignoredups flag tells bash to ignore duplicate successive entries
+#   ignoreboth flag is equivalent to ignorespace:ignoredups
+export HISTCONTROL=ignoreboth
+
+# Set maximum history size
+export HISTFILESIZE=10000
+export HISTSIZE=10000
+
+# ------------------------------------------------------------------------------
+# PATH
+# ------------------------------------------------------------------------------
+# Add $HOME/.local/bin to front of PATH (if exists)
+test -d "$HOME/.local/bin" && export PATH="$HOME/.local/bin:$PATH"
