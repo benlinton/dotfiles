@@ -21,6 +21,11 @@ export GITHUB_USERNAME=benlinton
 sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply $GITHUB_USERNAME
 ```
 
+Make changes and commits in.
+```bash
+cd ~/.local/share/chezmoi
+```
+
 
 ## Key commands
 
