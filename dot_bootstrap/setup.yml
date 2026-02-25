@@ -1,7 +1,6 @@
 ---
 - name: Workstation setup
   hosts: localhost
-  become: true
   connection: local
   gather_facts: true
 
@@ -14,6 +13,7 @@
 
     - name: Install packages (Fedora)
       when: ansible_facts['distribution'] == "Fedora"
+      become: true
       ansible.builtin.dnf:
         name:
           - git
@@ -25,6 +25,7 @@
 
     - name: Add GitHub CLI apt key (Debian/Ubuntu)
       when: ansible_facts['os_family'] == "Debian"
+      become: true
       ansible.builtin.get_url:
         url: https://cli.github.com/packages/githubcli-archive-keyring.gpg
         dest: /usr/share/keyrings/githubcli-archive-keyring.gpg
@@ -32,6 +33,7 @@
 
     - name: Add GitHub CLI apt repository (Debian/Ubuntu)
       when: ansible_facts['os_family'] == "Debian"
+      become: true
       ansible.builtin.apt_repository:
         repo: "deb [arch={{ ansible_facts['architecture'] }} signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main"
         state: present
@@ -39,6 +41,7 @@
 
     - name: Install packages (Debian/Ubuntu)
       when: ansible_facts['os_family'] == "Debian"
+      become: true
       ansible.builtin.apt:
         name:
           - git
@@ -65,6 +68,7 @@
 
     - name: Ensure fonts directory (Linux)
       when: ansible_facts['system'] == "Linux"
+      become: true
       ansible.builtin.file:
         path: "~{{ remote_regular_user }}/.fonts"
         state: directory
@@ -80,6 +84,7 @@
 
     - name: Download Jetbrains Mono (Linux)
       when: ansible_facts['system'] == "Linux" and jetbrains_mono_exists is failed
+      become: true
       ansible.builtin.unarchive:
         src: https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/JetBrainsMono.zip
         dest: "~{{ remote_regular_user }}/.fonts/"
