@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+# ---------------------------------------------------------------------------
+# Send notification to device via https://pushover.net
+#
+# To configure secrets:
+#   pushover --init
+#
+# Valid secrets file locations (first found wins):
+#   ~/.config/pushover/pushover_secrets
+#   /etc/pushover/pushover_secrets
+#
+# Usage:
+#   pushover "This is a test."
+# ---------------------------------------------------------------------------
+
+# Include --init flag to auto create ~/.config/pushover/pushover_secrets
+if [[ "$1" == "--init" ]]; then
+  mkdir -p ~/.config/pushover
+  cat > ~/.config/pushover/pushover_secrets <<'EOF'
+USER_KEY=CHANGE_ME_USER_KEY
+APP_TOKEN=CHANGE_ME_APP_TOKEN
+EOF
+  echo "Created ~/.config/pushover/pushover_secrets — edit it to add your credentials."
+  exit 0
+fi
+
+# Look for secrets
+if [[ -f ~/.config/pushover/pushover_secrets ]]; then
+  source ~/.config/pushover/pushover_secrets
+elif [[ -f /etc/pushover/pushover_secrets ]]; then
+  source /etc/pushover/pushover_secrets
+else
+  echo >&2 "No secrets file found. Run: pushover --init"
+  exit 1
+fi
+
+# Exit and display usage, unless a MESSAGE is provided
+MESSAGE="$1"
+[[ "$MESSAGE" != "" ]] || { echo >&2 'Usage: pushover "This is a test."'; echo >&2 '       pushover --init'; exit 1; }
+
+# Send pushover message
+curl -s \
+	--form-string "user=${USER_KEY}" \
+	--form-string "token=${APP_TOKEN}" \
+	--form-string "message=$MESSAGE" \
+	https://api.pushover.net/1/messages.json
