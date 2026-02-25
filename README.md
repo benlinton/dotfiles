@@ -14,27 +14,25 @@ As a result I now aim for minimal customization.
 
 ## Quick start
 
-For macOS install `brew` first.
+For macOS first install `brew`.
 
 ```bash
 export GITHUB_USERNAME=benlinton
 sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply $GITHUB_USERNAME
 ```
 
-Make changes and commits in.
-```bash
-cd ~/.local/share/chezmoi
-```
-
 
 ## Key commands
 
 ```bash
-# Recommended init approach - clones the repo into ~/.local/share/chezmoi/ 
+# Manually make changes and commits from here
+cd ~/.local/share/chezmoi
+
+# Recommended init approach - clones the repo into ~/.local/share/chezmoi/
 chezmoi init --apply $GITHUB_USERNAME
 
 # (Optional) Init for non-standard local path - then add sourceDir to the generated chezmoi.toml config
-chezmoi init --apply --source /local/path/to/dotfiles 
+chezmoi init --apply --source /local/path/to/dotfiles
 
 # Apply dotfiles from source dir
 chezmoi apply
@@ -49,5 +47,5 @@ chezmoi edit ~/.bashrc
 chezmoi state delete-bucket --bucket=scriptOnce && chezmoi apply
 
 # Run Ansible playbook manually
-ansible-playbook ~/.bootstrap/setup.yml --ask-become-pass  
+ansible-playbook ~/.bootstrap/setup.yml --ask-become-pass
 ```
