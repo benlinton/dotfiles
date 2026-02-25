@@ -7,7 +7,7 @@
   tasks:
     - name: Get my user
       ansible.builtin.set_fact:
-        remote_regular_user: "{{ ansible_facts['env']['SUDO_USER'] or ansible_facts['user_id'] }}"
+        remote_regular_user: "{{ ansible_facts['env'].get('SUDO_USER') or ansible_facts['user_id'] }}"
 
     # --- Install packages ---
 
