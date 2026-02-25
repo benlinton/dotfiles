@@ -4,7 +4,7 @@
 # ------------------------------------------------------------------------------
 # Prompt color
 # ------------------------------------------------------------------------------
-# _PROMPT_ID    = user@host color: red for root, yellow for remote (SSH), blue for local
+# _PROMPT_ID    = user@host color: red for root, yellow for remote (SSH), cyan for local
 #                 green = no dotfiles installed (system default) — intentionally unused here
 # _PROMPT_INFO  = path color: always blue
 # _PROMPT_RESET = reset color
@@ -13,7 +13,7 @@ if [ "$(id -u)" = "0" ]; then
 elif [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ] || [ -n "$SSH_CONNECTION" ]; then
   _PROMPT_ID=$(printf '\033[33m')    # yellow (remote)
 else
-  _PROMPT_ID=$(printf '\033[34m')    # blue (local)
+  _PROMPT_ID=$(printf '\033[36m')    # cyan (local)
 fi
 _PROMPT_INFO=$(printf '\033[34m')    # blue (path)
 _PROMPT_RESET=$(printf '\033[0m')    # reset
