@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 data=$(cat)
 session_id=$(echo "$data" | jq -r '.session_id // "default"')
 total=$(echo "$data" | jq '(.context_window.total_input_tokens // 0) + (.context_window.total_output_tokens // 0)')
@@ -14,10 +15,12 @@ else
   delta=$total
 fi
 
+# Cache total and cumulative values
 cum=$((cum + delta))
 printf "%d" "$total" > "$prev_file"
 printf "%d" "$cum" > "$cum_file"
 
+# Print statusline
 echo "$data" | jq -r --argjson delta "$delta" --argjson cum "$cum" '
 def commas(n): n | tostring as $s | ($s | length) as $len | if $len <= 3 then $s elif $len <= 6 then $s[0:$len-3] + "," + $s[$len-3:] elif $len <= 9 then $s[0:$len-6] + "," + $s[$len-6:$len-3] + "," + $s[$len-3:] else $s end;
 def rpt(s; n): [range(n) | s] | join("");

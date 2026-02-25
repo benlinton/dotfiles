@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 
-# ------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # bashrc is executed for interactive non-login shells,
 # while bash_profile is executed for login shells
-# ------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 # Source shared shell config
 source "$HOME/.shellrc"
 
-# ------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # History (bash-specific)
-# ------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # For HISTCONTROL:
 #   ignorespace flag tells bash to ignore commands that start with spaces
 #   ignoredups flag tells bash to ignore duplicate successive entries
@@ -21,15 +21,15 @@ export HISTCONTROL=ignoreboth
 # HISTSIZE (shared) controls in-memory history size
 export HISTFILESIZE=10000
 
-# ------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Prompt (bash-specific)
-# ------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # _PROMPT_ID, _PROMPT_INFO, and _PROMPT_RESET set in .shellrc; \[...\] marks non-printing sequences for bash
 PS1="\[${_PROMPT_ID}\]\u@\h\[${_PROMPT_RESET}\]:\[${_PROMPT_INFO}\]\w\[${_PROMPT_RESET}\]\$ "
 
-# ------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # nvm bash completion (bash-specific) (OPTIONAL)
-# ------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 if [ -s "/usr/local/opt/nvm/etc/bash_completion.d/nvm" ]; then
   \. "/usr/local/opt/nvm/etc/bash_completion.d/nvm"
 fi

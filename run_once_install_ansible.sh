@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 install_on_debian() {
     sudo apt update
@@ -9,7 +9,14 @@ install_on_fedora() {
     sudo dnf install -y ansible
 }
 
+install_homebrew() {
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+}
+
 install_on_macos() {
+    if ! command -v brew &>/dev/null; then
+        install_homebrew
+    fi
     brew install ansible
 }
 

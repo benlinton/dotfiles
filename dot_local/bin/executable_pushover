@@ -21,7 +21,7 @@ if [[ "$1" == "--init" ]]; then
 USER_KEY=CHANGE_ME_USER_KEY
 APP_TOKEN=CHANGE_ME_APP_TOKEN
 EOF
-  echo "Created ~/.config/pushover/pushover_secrets — edit it to add your credentials."
+  echo "Created ~/.config/pushover/pushover_secrets — edit it."
   exit 0
 fi
 

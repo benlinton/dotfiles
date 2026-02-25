@@ -14,7 +14,7 @@ As a result I now aim for minimal customization.
 
 ## Quick start
 
-For macOS first install `brew`.
+For macOS, installs `brew` if it doesn't already exist.
 
 ```bash
 export GITHUB_USERNAME=benlinton
@@ -22,7 +22,7 @@ sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply $GITHUB_USERNAME
 ```
 
 
-## Key commands
+## Useful commands
 
 ```bash
 # Manually make changes and commits from here

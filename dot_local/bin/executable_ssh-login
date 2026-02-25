@@ -1,19 +1,42 @@
 #!/usr/bin/env bash
 set -e
 
-# Load step CA config from ~/.config/step-ca/.env
-# Required variables:
-#   STEP_SSH_USER      - SSH principal to log in as (e.g. warden)
+# ----------------------------------------------------------------------------
+# To create config file:
+#   ssh-login --init
+#
+# Valid secrets file locations (first found wins):
+#   ~/.config/step-ca/config
+#   /etc/step-ca/config
+#
+# Config:
+#   STEP_SSH_USER      - SSH user to log in as (e.g. myuser)
 #   STEP_PROVISIONER   - CA provisioner name (e.g. admin)
-#   STEP_CA_URL        - CA URL (e.g. https://step-ca.home:9000)
-ENV_FILE="${HOME}/.config/step-ca/.env"
-if [ ! -f "${ENV_FILE}" ]; then
-  echo "ssh-login: config file not found: ${ENV_FILE}" >&2
+#   STEP_CA_URL        - CA URL (e.g. https://ca.example.com:9000)
+# ----------------------------------------------------------------------------
+
+# Include --init flag to auto create ~/.config/step-ca/config
+if [[ "$1" == "--init" ]]; then
+  mkdir -p ~/.config/step-ca
+  cat > ~/.config/step-ca/config <<'EOF'
+STEP_SSH_USER=CHANGE_ME_USERNAME
+STEP_PROVISIONER=admin
+STEP_CA_URL=CHANGE_ME_CA_URL
+EOF
+  echo "Created ~/.config/step-ca/config — edit it."
+  exit 0
+fi
+
+# Look for config
+if [[ -f ~/.config/step-ca/config ]]; then
+  source ~/.config/step-ca/config
+elif [[ -f /etc/step-ca/config ]]; then
+  source /etc/step-ca/config
+else
+  echo >&2 "No config file found. Run: ssh-login --init"
   exit 1
 fi
-# shellcheck source=/dev/null
-. "${ENV_FILE}"
 
 step ssh login "${1:-${STEP_SSH_USER}}" \
-  --provisioner "${STEP_PROVISIONER}" \
+  --provisioner "${STEP_PROVISIONER:-admin}" \
   --ca-url "${STEP_CA_URL}"
