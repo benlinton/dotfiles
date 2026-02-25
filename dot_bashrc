@@ -25,7 +25,7 @@ export HISTFILESIZE=10000
 # Prompt (bash-specific)
 # ------------------------------------------------------------------------------
 # _PROMPT_ID, _PROMPT_INFO, and _PROMPT_RESET set in .shellrc; \[...\] marks non-printing sequences for bash
-PS1="\[${_PROMPT_ID}\]\u@\h\[${_PROMPT_INFO}\]:\w\$\[${_PROMPT_RESET}\] "
+PS1="\[${_PROMPT_ID}\]\u@\h\[${_PROMPT_RESET}\]:\[${_PROMPT_INFO}\]\w\[${_PROMPT_RESET}\]\$ "
 
 # ------------------------------------------------------------------------------
 # nvm bash completion (bash-specific) (OPTIONAL)
