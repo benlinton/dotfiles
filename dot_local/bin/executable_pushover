@@ -6,7 +6,7 @@
 # To configure secrets:
 #   pushover --init
 #
-# Valid secrets file locations (first found wins):
+# Valid secrets locations (first found wins):
 #   ~/.config/pushover/pushover_secrets
 #   /etc/pushover/pushover_secrets
 #

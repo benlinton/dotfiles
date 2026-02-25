@@ -5,7 +5,7 @@ set -e
 # To create config file:
 #   ssh-login --init
 #
-# Valid secrets file locations (first found wins):
+# Valid config locations (first found wins):
 #   ~/.config/step-ca/config
 #   /etc/step-ca/config
 #

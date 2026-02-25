@@ -41,6 +41,10 @@ case "${OS}" in
         ;;
 esac
 
-ansible-playbook ~/.bootstrap/setup.yml --ask-become-pass
+if [ "$(uname -s)" = "Darwin" ]; then
+  ansible-playbook ~/.bootstrap/setup.yml
+else
+  ansible-playbook ~/.bootstrap/setup.yml --ask-become-pass
+fi
 
 echo "Ansible installation complete."

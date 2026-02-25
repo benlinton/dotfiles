@@ -50,7 +50,10 @@ fi
 # ----------------------------------------------------------------------------
 # nvm (OPTIONAL)
 # ----------------------------------------------------------------------------
-if [ -s "/usr/local/opt/nvm/nvm.sh" ]; then
+if [ -s "/opt/homebrew/opt/nvm/nvm.sh" ]; then
+  export NVM_DIR="$HOME/.nvm"
+  \. "/opt/homebrew/opt/nvm/nvm.sh"
+elif [ -s "/usr/local/opt/nvm/nvm.sh" ]; then
   export NVM_DIR="$HOME/.nvm"
   \. "/usr/local/opt/nvm/nvm.sh"
 fi
