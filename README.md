@@ -48,5 +48,6 @@ chezmoi edit ~/.bashrc
 chezmoi state delete-bucket --bucket=scriptOnce && chezmoi apply
 
 # Run Ansible playbook manually
-ansible-playbook ~/.bootstrap/setup.yml --ask-become-pass
+ansible-playbook ~/.bootstrap/setup-macos-workstation.yml   # macOS
+ansible-playbook ~/.bootstrap/setup-linux-workstation.yml --ask-become-pass  # Linux
 ```

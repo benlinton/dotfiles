@@ -42,9 +42,9 @@ case "${OS}" in
 esac
 
 if [ "$(uname -s)" = "Darwin" ]; then
-  ansible-playbook ~/.bootstrap/setup.yml
+  ansible-playbook ~/.bootstrap/setup-macos-workstation.yml
 else
-  ansible-playbook ~/.bootstrap/setup.yml --ask-become-pass
+  ansible-playbook ~/.bootstrap/setup-linux-workstation.yml --ask-become-pass
 fi
 
 echo "Ansible installation complete."

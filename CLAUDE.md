@@ -21,9 +21,9 @@ Chezmoi uses filename prefixes/suffixes to determine how files are handled:
 ### Bootstrap flow
 
 1. Chezmoi is initialized via `sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply $GITHUB_USERNAME`
-2. `run_once_install_ansible.sh` installs Ansible (supports macOS/Debian/Fedora) and runs `~/.bootstrap/setup.yml`
-3. `run_onchange_bootstrap.sh.tmpl` re-runs the Ansible playbook whenever `dot_bootstrap/setup.yml` changes (uses sha256 of the file in the script header as the change trigger)
-4. `dot_bootstrap/setup.yml` is the Ansible playbook — currently installs packages and JetBrains Mono Nerd Font
+2. `run_once_install_ansible.sh` installs Ansible (supports macOS/Debian/Fedora) and runs the platform-specific playbook
+3. `run_onchange_bootstrap.sh.tmpl` re-runs the Ansible playbook whenever the platform-specific playbook changes (uses sha256 of the file in the script header as the change trigger)
+4. `dot_bootstrap/setup-macos-workstation.yml` and `dot_bootstrap/setup-linux-workstation.yml` are the Ansible playbooks — currently install packages and JetBrains Mono Nerd Font
 
 ### Template data
 
@@ -60,8 +60,9 @@ chezmoi edit ~/.bashrc
 # Re-run a run_once script after changes
 chezmoi state delete-bucket --bucket=scriptOnce && chezmoi apply
 
-# Run Ansible playbook manually (add --ask-become-pass on Linux)
-ansible-playbook ~/.bootstrap/setup.yml
+# Run Ansible playbook manually
+ansible-playbook ~/.bootstrap/setup-macos-workstation.yml   # macOS
+ansible-playbook ~/.bootstrap/setup-linux-workstation.yml --ask-become-pass  # Linux
 ```
 
 ## Notes

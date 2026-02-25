@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-# .bootstrap/setup.yml hash: {{ include "dot_bootstrap/setup.yml" | sha256sum }}
+# bootstrap hash: {{ if eq .chezmoi.os "darwin" }}{{ include "dot_bootstrap/setup-macos-workstation.yml" | sha256sum }}{{ else }}{{ include "dot_bootstrap/setup-linux-workstation.yml" | sha256sum }}{{ end }}
 
 if command -v ansible-playbook &> /dev/null; then
     if [[ "$(uname)" == "Darwin" ]]; then
-        ansible-playbook {{ joinPath .chezmoi.sourceDir "dot_bootstrap/setup.yml" | quote }}
+        ansible-playbook {{ joinPath .chezmoi.sourceDir "dot_bootstrap/setup-macos-workstation.yml" | quote }}
     else
-        ansible-playbook {{ joinPath .chezmoi.sourceDir "dot_bootstrap/setup.yml" | quote }} --ask-become-pass
+        ansible-playbook {{ joinPath .chezmoi.sourceDir "dot_bootstrap/setup-linux-workstation.yml" | quote }} --ask-become-pass
     fi
 fi

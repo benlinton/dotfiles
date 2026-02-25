@@ -1,0 +1,27 @@
+---
+- name: Workstation setup (macOS)
+  hosts: localhost
+  connection: local
+  gather_facts: true
+
+  tasks:
+    - name: Get my user
+      ansible.builtin.set_fact:
+        remote_regular_user: "{{ ansible_facts['env'].get('SUDO_USER') or ansible_facts['user_id'] }}"
+
+    - name: Install packages (macOS)
+      become: false
+      community.general.homebrew:
+        name:
+          - git
+          - gh
+          - htop
+          - tmux
+          - vim
+        state: present
+
+    - name: Install JetBrains Mono Nerd Font (macOS)
+      become: false
+      community.general.homebrew_cask:
+        name: font-jetbrains-mono-nerd-font
+        state: present

@@ -1,5 +1,5 @@
 ---
-- name: Workstation setup
+- name: Workstation setup (Linux)
   hosts: localhost
   connection: local
   gather_facts: true
@@ -9,7 +9,9 @@
       ansible.builtin.set_fact:
         remote_regular_user: "{{ ansible_facts['env'].get('SUDO_USER') or ansible_facts['user_id'] }}"
 
-    # --- Install packages ---
+    # ------------------------------------------------------------------------
+    # Install packages
+    # ------------------------------------------------------------------------
 
     - name: Install packages (Fedora)
       when: ansible_facts['distribution'] == "Fedora"
@@ -54,22 +56,11 @@
         state: present
         update_cache: true
 
-    - name: Install packages (macOS)
-      when: ansible_facts['os_family'] == "Darwin"
-      become: false
-      community.general.homebrew:
-        name:
-          - git
-          - gh
-          - htop
-          - tmux
-          - vim
-        state: present
+    # ------------------------------------------------------------------------
+    # Install fonts
+    # ------------------------------------------------------------------------
 
-    # --- Install fonts ---
-
-    - name: Ensure fonts directory (Linux)
-      when: ansible_facts['system'] == "Linux"
+    - name: Ensure fonts directory
       become: true
       ansible.builtin.file:
         path: "{{ ansible_env.HOME }}/.fonts"
@@ -77,15 +68,14 @@
         mode: "0755"
         owner: "{{ remote_regular_user }}"
 
-    - name: Check if Jetbrains Mono exists (Linux)
-      when: ansible_facts['system'] == "Linux"
+    - name: Check if Jetbrains Mono exists
       ansible.builtin.shell: "ls {{ ansible_env.HOME }}/.fonts/JetBrainsMonoNerd*FontMono*"
       register: jetbrains_mono_exists
       ignore_errors: true
       changed_when: false
 
-    - name: Download Jetbrains Mono (Linux)
-      when: ansible_facts['system'] == "Linux" and jetbrains_mono_exists is failed
+    - name: Download Jetbrains Mono
+      when: jetbrains_mono_exists is failed
       become: true
       ansible.builtin.unarchive:
         src: https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/JetBrainsMono.zip
@@ -94,14 +84,7 @@
         mode: "0755"
         owner: "{{ remote_regular_user }}"
 
-    - name: Refresh font cache (Linux)
-      when: ansible_facts['system'] == "Linux" and jetbrains_mono_exists is failed
+    - name: Refresh font cache
+      when: jetbrains_mono_exists is failed
       ansible.builtin.shell: "fc-cache -fv {{ ansible_env.HOME }}/.fonts"
       changed_when: true
-
-    - name: Install JetBrains Mono Nerd Font (macOS)
-      when: ansible_facts['os_family'] == "Darwin"
-      become: false
-      community.general.homebrew_cask:
-        name: font-jetbrains-mono-nerd-font
-        state: present
