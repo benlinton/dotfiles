@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -e
+
+# Load step CA config from ~/.config/step-ca/.env
+# Required variables:
+#   STEP_SSH_USER      - SSH principal to log in as (e.g. warden)
+#   STEP_PROVISIONER   - CA provisioner name (e.g. admin)
+#   STEP_CA_URL        - CA URL (e.g. https://step-ca.home:9000)
+ENV_FILE="${HOME}/.config/step-ca/.env"
+if [ ! -f "${ENV_FILE}" ]; then
+  echo "ssh-login: config file not found: ${ENV_FILE}" >&2
+  exit 1
+fi
+# shellcheck source=/dev/null
+. "${ENV_FILE}"
+
+step ssh login "${1:-${STEP_SSH_USER}}" \
+  --provisioner "${STEP_PROVISIONER}" \
+  --ca-url "${STEP_CA_URL}"

@@ -50,3 +50,12 @@ if [ -s "/usr/local/opt/nvm/nvm.sh" ]; then
   export NVM_DIR="$HOME/.nvm"
   \. "/usr/local/opt/nvm/nvm.sh"
 fi
+
+# ------------------------------------------------------------------------------
+# ssh-agent (OPTIONAL — requires smallstep)
+# ------------------------------------------------------------------------------
+if command -v step >/dev/null 2>&1; then
+  if ! pgrep -u "$USER" ssh-agent >/dev/null 2>&1; then
+    eval "$(ssh-agent -s)" >/dev/null
+  fi
+fi
