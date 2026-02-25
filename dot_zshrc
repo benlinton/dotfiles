@@ -6,6 +6,6 @@ source "$HOME/.shellrc"
 # ------------------------------------------------------------------------------
 # Prompt (zsh-specific)
 # ------------------------------------------------------------------------------
-# _PC and _PR set in .shellrc; %{...%} marks non-printing sequences for zsh
+# _PROMPT_ID, _PROMPT_INFO, and _PROMPT_RESET set in .shellrc; %{...%} marks non-printing sequences for zsh
 setopt PROMPT_SUBST
-PROMPT="%{${_PC}%}%n@%m:%~%# %{${_PR}%} "
+PROMPT="%{${_PROMPT_ID}%}%n@%m%{${_PROMPT_INFO}%}:%~%# %{${_PROMPT_RESET}%} "

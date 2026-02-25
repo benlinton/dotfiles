@@ -4,15 +4,18 @@
 # ------------------------------------------------------------------------------
 # Prompt color
 # ------------------------------------------------------------------------------
-# Red for root, green for SSH sessions, blue for local workstations
+# _PROMPT_ID    = user@host color: red for root, yellow for remote (SSH), green for local
+# _PROMPT_INFO  = path/context info color: always blue
+# _PROMPT_RESET = reset color
 if [ "$(id -u)" = "0" ]; then
-  _PC=$(printf '\033[31m')   # red (root)
+  _PROMPT_ID=$(printf '\033[31m')    # red (root)
 elif [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ] || [ -n "$SSH_CONNECTION" ]; then
-  _PC=$(printf '\033[32m')   # green (SSH)
+  _PROMPT_ID=$(printf '\033[33m')    # yellow (remote)
 else
-  _PC=$(printf '\033[34m')   # blue (local)
+  _PROMPT_ID=$(printf '\033[32m')    # green (local)
 fi
-_PR=$(printf '\033[0m')      # reset
+_PROMPT_INFO=$(printf '\033[34m')    # blue
+_PROMPT_RESET=$(printf '\033[0m')    # reset
 
 # ------------------------------------------------------------------------------
 # Editor
