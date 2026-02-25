@@ -60,8 +60,8 @@ chezmoi edit ~/.bashrc
 # Re-run a run_once script after changes
 chezmoi state delete-bucket --bucket=scriptOnce && chezmoi apply
 
-# Run Ansible playbook manually
-ansible-playbook ~/.bootstrap/setup.yml --ask-become-pass
+# Run Ansible playbook manually (add --ask-become-pass on Linux)
+ansible-playbook ~/.bootstrap/setup.yml
 ```
 
 ## Notes
