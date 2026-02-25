@@ -10,6 +10,7 @@ This project uses:
 Long ago, I heavily customized my tools and environments for maximize efficiency. 
 Over time I found that approach slowed me down on shared environments.
 As a result I now aim for minimal customization.
+In addition, I generally prefer containers over local installs to maintain a controlled, predictable, and reproducible environment.
 
 
 ## Quick start
