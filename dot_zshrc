@@ -13,3 +13,9 @@ source "$HOME/.shellrc"
 # _PROMPT_ID, _PROMPT_INFO, and _PROMPT_RESET set in .shellrc; %{...%} marks non-printing sequences for zsh
 setopt PROMPT_SUBST
 PROMPT="%{${_PROMPT_ID}%}%n@%m%{${_PROMPT_RESET}%}:%{${_PROMPT_INFO}%}%~%{${_PROMPT_RESET}%}%# "
+
+# ----------------------------------------------------------------------------
+# Set opt
+# - interactivecomments - ignore comments starting with #
+# ----------------------------------------------------------------------------
+setopt interactivecomments
