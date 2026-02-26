@@ -13,19 +13,6 @@
     # Install packages
     # ------------------------------------------------------------------------
 
-    - name: Install packages (Fedora)
-      when: ansible_facts['distribution'] == "Fedora"
-      become: true
-      ansible.builtin.dnf:
-        name:
-          - git
-          - gh
-          - htop
-          - tmux
-          - vim
-          - fontconfig
-        state: present
-
     - name: Add GitHub CLI apt key (Debian/Ubuntu)
       when: ansible_facts['os_family'] == "Debian"
       become: true
@@ -56,6 +43,19 @@
           - unzip
         state: present
         update_cache: true
+
+    - name: Install packages (Fedora)
+      when: ansible_facts['distribution'] == "Fedora"
+      become: true
+      ansible.builtin.dnf:
+        name:
+          - git
+          - gh
+          - htop
+          - tmux
+          - vim
+          - fontconfig
+        state: present
 
     # ------------------------------------------------------------------------
     # Install fonts
