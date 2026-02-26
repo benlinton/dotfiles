@@ -49,7 +49,9 @@ if [ "$(uname -s)" = "Darwin" ]; then
     ansible-playbook ~/.bootstrap/setup-macos-workstation.yml
 elif is_wsl; then
     ansible-playbook ~/.bootstrap/setup-wsl-workstation.yml --ask-become-pass
-    ansible-playbook ~/.bootstrap/setup-windows-workstation.yml
+    WIN_PS1="$(wslpath -w ~/.bootstrap/bootstrap-windows.ps1)"
+    WIN_PLAYBOOK="$(wslpath -w ~/.bootstrap/setup-windows-workstation.yml)"
+    powershell.exe -ExecutionPolicy Bypass -File "$WIN_PS1" "$WIN_PLAYBOOK"
 else
     ansible-playbook ~/.bootstrap/setup-linux-workstation.yml --ask-become-pass
 fi
