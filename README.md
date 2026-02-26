@@ -65,3 +65,11 @@ chezmoi state delete-bucket --bucket=scriptOnce && chezmoi apply
 ansible-playbook ~/.bootstrap/provision-workstation-macos.yml   # macOS
 ansible-playbook ~/.bootstrap/provision-workstation-linux.yml --ask-become-pass  # Linux
 ```
+
+## Playbook run scenarios
+
+| Scenario | `run_once_*.sh` | `run_onchange_*.sh.tmpl` |
+|----------|-----------------|--------------------------|
+| Fresh machine (`init --apply`) | Runs (never ran before) | Runs (hash not in state) |
+| Re-apply, playbook unchanged | Skipped | Skipped |
+| Re-apply, playbook edited | Skipped | Runs (hash changed) |
