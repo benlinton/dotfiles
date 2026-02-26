@@ -34,12 +34,12 @@
       become: true
       ansible.builtin.apt:
         name:
+          - fontconfig
           - git
           - gh
           - htop
           - tmux
           - vim
-          - fontconfig
           - unzip
         state: present
         update_cache: true
@@ -49,12 +49,12 @@
       become: true
       ansible.builtin.dnf:
         name:
+          - fontconfig
           - git
           - gh
           - htop
           - tmux
           - vim
-          - fontconfig
         state: present
 
     # ------------------------------------------------------------------------
