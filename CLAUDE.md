@@ -23,7 +23,7 @@ Chezmoi uses filename prefixes/suffixes to determine how files are handled:
 1. Chezmoi is initialized via `sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply $GITHUB_USERNAME`
 2. `run_once_install_ansible.sh` installs Ansible (supports macOS/Debian/Fedora) and runs the platform-specific playbook
 3. `run_onchange_bootstrap.sh.tmpl` re-runs the Ansible playbook whenever the platform-specific playbook changes (uses sha256 of the file in the script header as the change trigger)
-4. `dot_bootstrap/setup-macos-workstation.yml` and `dot_bootstrap/setup-linux-workstation.yml` are the Ansible playbooks — currently install packages and JetBrains Mono Nerd Font
+4. `dot_bootstrap/provision-workstation-macos.yml` and `dot_bootstrap/provision-workstation-linux.yml` are the Ansible playbooks — currently install packages and JetBrains Mono Nerd Font
 
 ### Template data
 
@@ -61,8 +61,8 @@ chezmoi edit ~/.bashrc
 chezmoi state delete-bucket --bucket=scriptOnce && chezmoi apply
 
 # Run Ansible playbook manually
-ansible-playbook ~/.bootstrap/setup-macos-workstation.yml   # macOS
-ansible-playbook ~/.bootstrap/setup-linux-workstation.yml --ask-become-pass  # Linux
+ansible-playbook ~/.bootstrap/provision-workstation-macos.yml   # macOS
+ansible-playbook ~/.bootstrap/provision-workstation-linux.yml --ask-become-pass  # Linux
 ```
 
 ## Notes
