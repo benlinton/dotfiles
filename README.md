@@ -15,12 +15,17 @@ In addition, I generally prefer containers over local installs to maintain a con
 
 ## Quick start
 
-For macOS, installs `brew` if it doesn't already exist.
+Either use a [package manager](https://www.chezmoi.io/install) **(recommended)** or install  `chezmoi` natively.
+```bash
+sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/.local/bin
+```
 
+Apply dotfiles and run ansible.
 ```bash
 export GITHUB_USERNAME=benlinton
 sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply $GITHUB_USERNAME
 ```
+> For macOS, this will install `brew` if missing.
 
 
 ## Useful commands

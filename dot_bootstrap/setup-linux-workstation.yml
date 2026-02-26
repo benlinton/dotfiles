@@ -53,6 +53,7 @@
           - tmux
           - vim
           - fontconfig
+          - unzip
         state: present
         update_cache: true
 
