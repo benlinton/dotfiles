@@ -1,57 +1,116 @@
 #!/usr/bin/env bash
 
-install_on_debian() {
-    sudo apt update
-    sudo apt install -y ansible
+# ----------------------------------------------------------------------------
+# Check for OS
+# ----------------------------------------------------------------------------
+is_windows() {
+    grep -qi microsoft /proc/version 2>/dev/null
 }
 
-install_on_fedora() {
-    sudo dnf install -y ansible
+is_fedora() {
+    [ -f /etc/fedora-release ]
+}
+
+is_debian() {
+    [ -f /etc/lsb-release ]
+}
+
+is_macos() {
+    [ "$(uname -s)" = "Darwin" ]
+}
+
+# ----------------------------------------------------------------------------
+# Ansible installers
+# ----------------------------------------------------------------------------
+maybe_sudo() {
+    if [ "$(id -u)" = "0" ]; then
+        "$@"
+    else
+        sudo "$@"
+    fi
+}
+
+install_ansible_on_debian() {
+    maybe_sudo apt update
+    maybe_sudo apt install -y ansible
+}
+
+install_ansible_on_fedora() {
+    maybe_sudo dnf install -y ansible
 }
 
 install_homebrew() {
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 }
 
-install_on_macos() {
+install_ansible_on_macos() {
     if ! command -v brew &>/dev/null; then
         install_homebrew
     fi
     brew install ansible
 }
 
-OS="$(uname -s)"
-case "${OS}" in
-    Linux*)
-        if [ -f /etc/fedora-release ]; then
-            install_on_fedora
-        elif [ -f /etc/lsb-release ]; then
-            install_on_debian
-        else
-            echo "Unsupported Linux distribution"
-            exit 1
-        fi
-        ;;
-    Darwin*)
-        install_on_macos
-        ;;
-    *)
-        echo "Unsupported operating system: ${OS}"
-        exit 1
-        ;;
-esac
+install_ansible_on_windows() {
+    powershell.exe -ExecutionPolicy Bypass -Command '
+        $ErrorActionPreference = "Stop"
 
-is_wsl() {
-    grep -qi microsoft /proc/version 2>/dev/null
+        function Refresh-Path {
+            $machine = [System.Environment]::GetEnvironmentVariable("PATH", "Machine")
+            $user    = [System.Environment]::GetEnvironmentVariable("PATH", "User")
+            $env:PATH = "$machine;$user"
+        }
+
+        if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+            Write-Host "Installing winget..."
+            $installer = "$env:TEMP\AppInstaller.msixbundle"
+            Invoke-WebRequest -Uri "https://aka.ms/getwinget" -OutFile $installer
+            Add-AppxPackage $installer
+        }
+
+        if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
+            Write-Host "Installing Python 3..."
+            winget install --id Python.Python.3.12 --silent --accept-package-agreements --accept-source-agreements
+            Refresh-Path
+        }
+
+        if (-not (Get-Command ansible-playbook -ErrorAction SilentlyContinue)) {
+            Write-Host "Installing Ansible..."
+            python -m pip install ansible
+            Refresh-Path
+        }
+    '
 }
 
-if [ "$(uname -s)" = "Darwin" ]; then
+# ----------------------------------------------------------------------------
+# Determine how to install ansible 
+# Assuming windows gets installed from wsl - default: ubuntu (debian)
+# ----------------------------------------------------------------------------
+if is_macos; then
+    install_ansible_on_macos
+elif is_fedora; then
+    install_ansible_on_fedora
+elif is_debian; then
+    install_ansible_on_debian
+elif ! is_windows; then
+    echo "Unsupported operating system."
+    exit 1
+fi
+
+if is_windows; then
+    install_ansible_on_windows
+fi
+
+# ----------------------------------------------------------------------------
+# Run playbooks
+# Windows will run both the workstation-wls and workstation-windows playbooks
+# ----------------------------------------------------------------------------
+if is_macos; then
     ansible-playbook ~/.bootstrap/provision-workstation-macos.yml
-elif is_wsl; then
+elif is_windows; then
     ansible-playbook ~/.bootstrap/provision-workstation-wsl.yml --ask-become-pass
-    WIN_PS1="$(wslpath -w ~/.bootstrap/bootstrap-windows.ps1)"
+
     WIN_PLAYBOOK="$(wslpath -w ~/.bootstrap/provision-workstation-windows.yml)"
-    powershell.exe -ExecutionPolicy Bypass -File "$WIN_PS1" "$WIN_PLAYBOOK"
+    powershell.exe -ExecutionPolicy Bypass -Command "ansible-playbook '$WIN_PLAYBOOK'"
 else
     ansible-playbook ~/.bootstrap/provision-workstation-linux.yml --ask-become-pass
 fi

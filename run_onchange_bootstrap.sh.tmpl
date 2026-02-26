@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 
-# bootstrap hash: {{ if eq .chezmoi.os "darwin" }}{{ include "dot_bootstrap/provision-workstation-macos.yml" | sha256sum }}{{ else if stat "/proc/sys/fs/binfmt_misc/WSLInterop" }}{{ include "dot_bootstrap/provision-workstation-wsl.yml" | sha256sum }}{{ include "dot_bootstrap/provision-workstation-windows.yml" | sha256sum }}{{ include "dot_bootstrap/bootstrap-windows.ps1" | sha256sum }}{{ else }}{{ include "dot_bootstrap/provision-workstation-linux.yml" | sha256sum }}{{ end }}
+# bootstrap hash: {{ if eq .chezmoi.os "darwin" }}{{ include "dot_bootstrap/provision-workstation-macos.yml" | sha256sum }}{{ else if stat "/proc/sys/fs/binfmt_misc/WSLInterop" }}{{ include "dot_bootstrap/provision-workstation-wsl.yml" | sha256sum }}{{ include "dot_bootstrap/provision-workstation-windows.yml" | sha256sum }}{{ else }}{{ include "dot_bootstrap/provision-workstation-linux.yml" | sha256sum }}{{ end }}
 
 if command -v ansible-playbook &> /dev/null; then
     if [[ "$(uname)" == "Darwin" ]]; then
         ansible-playbook {{ joinPath .chezmoi.sourceDir "dot_bootstrap/provision-workstation-macos.yml" | quote }}
     elif grep -qi microsoft /proc/version 2>/dev/null; then
         ansible-playbook {{ joinPath .chezmoi.sourceDir "dot_bootstrap/provision-workstation-wsl.yml" | quote }} --ask-become-pass
-        WIN_PS1="$(wslpath -w {{ joinPath .chezmoi.sourceDir "dot_bootstrap/bootstrap-windows.ps1" | quote }})"
         WIN_PLAYBOOK="$(wslpath -w {{ joinPath .chezmoi.sourceDir "dot_bootstrap/provision-workstation-windows.yml" | quote }})"
-        powershell.exe -ExecutionPolicy Bypass -File "$WIN_PS1" "$WIN_PLAYBOOK"
+        powershell.exe -ExecutionPolicy Bypass -Command "ansible-playbook '$WIN_PLAYBOOK'"
     else
         ansible-playbook {{ joinPath .chezmoi.sourceDir "dot_bootstrap/provision-workstation-linux.yml" | quote }} --ask-become-pass
     fi
