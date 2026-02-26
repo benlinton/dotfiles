@@ -30,6 +30,12 @@ maybe_sudo() {
     fi
 }
 
+install_homebrew() {
+    if ! command -v brew &>/dev/null; then
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    fi
+}
+
 install_ansible_on_debian() {
     maybe_sudo apt update
     maybe_sudo apt install -y ansible
@@ -39,14 +45,8 @@ install_ansible_on_fedora() {
     maybe_sudo dnf install -y ansible
 }
 
-install_homebrew() {
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-}
-
 install_ansible_on_macos() {
-    if ! command -v brew &>/dev/null; then
-        install_homebrew
-    fi
+    install_homebrew
     brew install ansible
 }
 
@@ -83,7 +83,7 @@ install_ansible_on_windows() {
 
 # ----------------------------------------------------------------------------
 # Determine how to install ansible 
-# Assuming windows gets installed from wsl - default: ubuntu (debian)
+# Assuming windows has wsl running a supported distro
 # ----------------------------------------------------------------------------
 if is_macos; then
     install_ansible_on_macos
@@ -102,7 +102,7 @@ fi
 
 # ----------------------------------------------------------------------------
 # Run playbooks
-# Windows will run both the workstation-wls and workstation-windows playbooks
+# Windows includes provision-workstation-wls and provision-workstation-windows playbooks
 # ----------------------------------------------------------------------------
 if is_macos; then
     ansible-playbook ~/.bootstrap/provision-workstation-macos.yml
