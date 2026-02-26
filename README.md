@@ -26,12 +26,26 @@ Either use a [package manager](https://www.chezmoi.io/install) **(recommended)**
 sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/.local/bin
 ```
 
-Apply dotfiles and run ansible.
+Apply dotfiles and run applicable ansible playbooks.
 ```bash
 export GITHUB_USERNAME=benlinton
 sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply $GITHUB_USERNAME
 ```
-> For macOS, installs `brew` if missing.
+> For macOS, installs `brew` if missing. For Windows, installs `winget`.
+
+
+## Playbook run scenarios
+
+See [dot_bootstrap/](/dot_bootstrap/) for the various playbooks that may automatically run. 
+The ansible installer will run once on init, and the playbooks will run both on init and whenever they are modified.
+
+| Scenario | `run_once_*.sh` | `run_onchange_*.sh.tmpl` |
+|----------|-----------------|--------------------------|
+| Fresh machine (`init --apply`) | Runs (never ran before) | Runs (hash not in state) |
+| Re-apply, playbook unchanged | Skipped | Skipped |
+| Re-apply, playbook edited | Skipped | Runs (hash changed) |
+
+> Important Pitfall: `install_ansible` needs to remain alphabetically ahead of `provision` runner.
 
 
 ## Useful commands
@@ -65,16 +79,3 @@ chezmoi state delete-bucket --bucket=scriptState && chezmoi apply
 ansible-playbook ~/.bootstrap/provision-workstation-macos.yml   # macOS
 ansible-playbook ~/.bootstrap/provision-workstation-linux.yml --ask-become-pass  # Linux
 ```
-
-## Playbook run scenarios
-
-See [dot_bootstrap/](/dot_bootstrap/) for the various playbooks that may automatically run. 
-The ansible installer will run once on init, and the playbooks will run both on init and whenever they are modified.
-
-| Scenario | `run_once_*.sh` | `run_onchange_*.sh.tmpl` |
-|----------|-----------------|--------------------------|
-| Fresh machine (`init --apply`) | Runs (never ran before) | Runs (hash not in state) |
-| Re-apply, playbook unchanged | Skipped | Skipped |
-| Re-apply, playbook edited | Skipped | Runs (hash changed) |
-
-> Important Pitfall: `install_ansible` needs to remain alphabetically ahead of `provision` runner.
