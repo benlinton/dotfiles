@@ -65,19 +65,4 @@ elif ! is_windows; then
     exit 1
 fi
 
-# ----------------------------------------------------------------------------
-# Run playbooks
-# Windows: WSL playbook via ansible, Windows native via PowerShell script
-# ----------------------------------------------------------------------------
-if is_macos; then
-    ansible-playbook ~/.bootstrap/provision-workstation-macos.yml
-elif is_windows; then
-    ansible-playbook ~/.bootstrap/provision-workstation-wsl.yml --ask-become-pass
-    # run Windows native provisioning without ansible
-    WIN_SCRIPT="$(wslpath -w ~/.bootstrap/provision-workstation-windows.ps1)"
-    powershell.exe -ExecutionPolicy Bypass -File "$WIN_SCRIPT"
-else
-    ansible-playbook ~/.bootstrap/provision-workstation-linux.yml --ask-become-pass
-fi
-
 echo "Ansible installation complete."

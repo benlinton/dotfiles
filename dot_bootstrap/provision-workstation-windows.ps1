@@ -14,6 +14,7 @@ if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
 
 # ----------------------------------------------------------------------------
 # Install applications
+# Pass the -Silent flag if you don't want an interactive install
 # ----------------------------------------------------------------------------
 function Install-App {
     param([string]$Id, [string]$Name, [switch]$Silent)
