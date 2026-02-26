@@ -41,10 +41,17 @@ case "${OS}" in
         ;;
 esac
 
+is_wsl() {
+    grep -qi microsoft /proc/version 2>/dev/null
+}
+
 if [ "$(uname -s)" = "Darwin" ]; then
-  ansible-playbook ~/.bootstrap/setup-macos-workstation.yml
+    ansible-playbook ~/.bootstrap/setup-macos-workstation.yml
+elif is_wsl; then
+    ansible-playbook ~/.bootstrap/setup-wsl-workstation.yml --ask-become-pass
+    ansible-playbook ~/.bootstrap/setup-windows-workstation.yml
 else
-  ansible-playbook ~/.bootstrap/setup-linux-workstation.yml --ask-become-pass
+    ansible-playbook ~/.bootstrap/setup-linux-workstation.yml --ask-become-pass
 fi
 
 echo "Ansible installation complete."

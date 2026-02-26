@@ -1,0 +1,41 @@
+---
+- name: Workstation setup (WSL)
+  hosts: localhost
+  connection: local
+  gather_facts: true
+
+  tasks:
+    - name: Get my user
+      ansible.builtin.set_fact:
+        remote_regular_user: "{{ ansible_facts['env'].get('SUDO_USER') or ansible_facts['user_id'] }}"
+
+    # ------------------------------------------------------------------------
+    # Install packages
+    # ------------------------------------------------------------------------
+
+    - name: Add GitHub CLI apt key
+      become: true
+      ansible.builtin.get_url:
+        url: https://cli.github.com/packages/githubcli-archive-keyring.gpg
+        dest: /usr/share/keyrings/githubcli-archive-keyring.gpg
+        mode: "0644"
+
+    - name: Add GitHub CLI apt repository
+      become: true
+      ansible.builtin.apt_repository:
+        repo: "deb [arch={{ ansible_facts['architecture'] }} signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main"
+        state: present
+        filename: github-cli
+
+    - name: Install packages
+      become: true
+      ansible.builtin.apt:
+        name:
+          - git
+          - gh
+          - htop
+          - tmux
+          - vim
+          - unzip
+        state: present
+        update_cache: true

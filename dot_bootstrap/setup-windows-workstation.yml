@@ -1,0 +1,98 @@
+---
+- name: Workstation setup (Windows via WSL)
+  hosts: localhost
+  connection: local
+  gather_facts: true
+
+  tasks:
+    - name: Get Windows username
+      ansible.builtin.command:
+        cmd: cmd.exe /c echo %USERNAME%
+      register: win_username_result
+      changed_when: false
+
+    - name: Set Windows path facts
+      ansible.builtin.set_fact:
+        win_username: "{{ win_username_result.stdout | trim }}"
+        win_fonts_dir: "/mnt/c/Users/{{ win_username_result.stdout | trim }}/AppData/Local/Microsoft/Windows/Fonts"
+
+    # ------------------------------------------------------------------------
+    # Install applications via winget
+    # ------------------------------------------------------------------------
+
+    - name: Install Visual Studio Code
+      ansible.builtin.command:
+        cmd: winget.exe install --id Microsoft.VisualStudioCode --silent --accept-package-agreements --accept-source-agreements
+      register: vscode_install
+      changed_when: "'successfully installed' in vscode_install.stdout | lower"
+      failed_when: vscode_install.rc != 0 and 'already installed' not in vscode_install.stdout | lower
+
+    - name: Install 7-Zip
+      ansible.builtin.command:
+        cmd: winget.exe install --id 7zip.7zip --silent --accept-package-agreements --accept-source-agreements
+      register: sevenzip_install
+      changed_when: "'successfully installed' in sevenzip_install.stdout | lower"
+      failed_when: sevenzip_install.rc != 0 and 'already installed' not in sevenzip_install.stdout | lower
+
+    # ------------------------------------------------------------------------
+    # Install JetBrains Mono Nerd Font for Windows Terminal
+    # ------------------------------------------------------------------------
+
+    - name: Ensure Windows fonts directory exists
+      ansible.builtin.file:
+        path: "{{ win_fonts_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Check if JetBrains Mono already installed in Windows fonts
+      ansible.builtin.find:
+        paths: "{{ win_fonts_dir }}"
+        patterns: "JetBrainsMonoNerd*FontMono*.ttf"
+      register: win_jetbrains_mono
+
+    - name: Create temporary fonts download directory
+      when: win_jetbrains_mono.matched == 0
+      ansible.builtin.file:
+        path: /tmp/win-fonts-setup
+        state: directory
+        mode: "0755"
+
+    - name: Download JetBrains Mono Nerd Font
+      when: win_jetbrains_mono.matched == 0
+      ansible.builtin.get_url:
+        url: https://github.com/ryanoasis/nerd-fonts/releases/download/v3.1.1/JetBrainsMono.zip
+        dest: /tmp/win-fonts-setup/JetBrainsMono.zip
+        mode: "0644"
+
+    - name: Extract JetBrains Mono Nerd Font
+      when: win_jetbrains_mono.matched == 0
+      ansible.builtin.unarchive:
+        src: /tmp/win-fonts-setup/JetBrainsMono.zip
+        dest: /tmp/win-fonts-setup/
+
+    - name: Find JetBrains Mono FontMono TTF files
+      when: win_jetbrains_mono.matched == 0
+      ansible.builtin.find:
+        paths: /tmp/win-fonts-setup
+        patterns: "JetBrainsMonoNerd*FontMono*.ttf"
+      register: jetbrains_ttf_files
+
+    - name: Copy JetBrains Mono fonts to Windows fonts directory
+      when: win_jetbrains_mono.matched == 0
+      ansible.builtin.copy:
+        src: "{{ item.path }}"
+        dest: "{{ win_fonts_dir }}/{{ item.path | basename }}"
+        mode: "0644"
+      loop: "{{ jetbrains_ttf_files.files }}"
+
+    - name: Register JetBrains Mono fonts in Windows
+      when: win_jetbrains_mono.matched == 0
+      ansible.builtin.command:
+        cmd: >-
+          powershell.exe -Command
+          "$shell = New-Object -ComObject Shell.Application;
+          $fontsFolder = $shell.Namespace(0x14);
+          Get-ChildItem 'C:\Users\{{ win_username }}\AppData\Local\Microsoft\Windows\Fonts'
+          -Filter 'JetBrainsMonoNerd*' |
+          ForEach-Object { $fontsFolder.CopyHere($_.FullName) }"
+      changed_when: true
