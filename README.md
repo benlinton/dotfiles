@@ -1,8 +1,14 @@
 # dotfiles
 
-This project uses:
+Utilizes:
 - [chezmoi](https://chezmoi.io) - as dotfile manager 
 - [ansible](https://github.com/ansible/ansible) - for provisioning
+
+Supports:
+- Debian
+- Fedora
+- MacOS
+- Windows (`wsl`)
 
 
 ## Philosophy
