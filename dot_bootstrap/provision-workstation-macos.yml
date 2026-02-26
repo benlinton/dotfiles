@@ -14,12 +14,14 @@
     # ------------------------------------------------------------------------
 
     - name: Install packages (macOS)
-      become: false
       community.general.homebrew:
         name:
+          - ack
+          - chezmoi
           - git
           - gh
           - htop
+          - step
           - tmux
           - vim
         state: present
@@ -29,17 +31,94 @@
     # ------------------------------------------------------------------------
 
     - name: Install JetBrains Mono Nerd Font (macOS)
-      become: false
       community.general.homebrew_cask:
         name: font-jetbrains-mono-nerd-font
         state: present
 
     # ------------------------------------------------------------------------
-    # Install Claude Code
+    # Install applications
     # ------------------------------------------------------------------------
 
+    - name: Install Alfred (macOS)
+      community.general.homebrew_cask:
+        name: alfred
+        state: present
+
+    # - name: Install Chrome (macOS)
+    #   community.general.homebrew_cask:
+    #     name: google-chrome
+    #     state: present
+    
     - name: Install Claude Code (macOS)
-      become: false
       community.general.homebrew_cask:
         name: claude-code
         state: present
+
+    # - name: Install Docker (macOS)
+    #   community.general.homebrew_cask:
+    #     name: docker
+    #     state: present
+
+    # - name: Install Firefox (macOS)
+    #   community.general.homebrew_cask:
+    #     name: firefox
+    #     state: present
+
+    - name: Install Kitty (macOS)
+      community.general.homebrew_cask:
+        name: kitty
+        state: present
+
+    # - name: Install Slack (macOS)
+    #   community.general.homebrew_cask:
+    #     name: slack
+    #     state: present
+
+    # - name: Install Tailscale (macOS)
+    #   community.general.homebrew_cask:
+    #     name: tailscale
+    #     state: present
+    
+    # - name: Install The Unarchiver (macOS)
+    #   community.general.homebrew_cask:
+    #     name: the-unarchiver
+    #     state: present
+
+    # - name: Install Transmit (macOS)
+    #   community.general.homebrew_cask:
+    #     name: transmit
+    #     state: present
+
+    # - name: Install Viscosity (macOS)
+    #   community.general.homebrew_cask:
+    #     name: viscosity
+    #     state: present
+
+    # - name: Install VLC (macOS)
+    #   community.general.homebrew_cask:
+    #     name: vlc
+    #     state: present
+
+    # - name: Install VSCode (macOS)
+    #   community.general.homebrew_cask:
+    #     name: visual-studio-code
+    #     state: present
+
+    # ------------------------------------------------------------------------
+    # Customize applications
+    # ------------------------------------------------------------------------
+
+    - name: Install fileicon (macOS)
+      community.general.homebrew:
+        name: fileicon
+        state: present
+
+    - name: Set custom Kitty icon (macOS)
+      ansible.builtin.command:
+        cmd: fileicon set /Applications/kitty.app {{ ansible_facts['env']['HOME'] }}/.local/share/chezmoi/assets/icons/kitty.png
+      changed_when: false
+
+    - name: Refresh Dock to apply icon changes (macOS)
+      ansible.builtin.command:
+        cmd: killall Dock
+      changed_when: false
