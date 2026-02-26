@@ -73,3 +73,5 @@ ansible-playbook ~/.bootstrap/provision-workstation-linux.yml --ask-become-pass 
 | Fresh machine (`init --apply`) | Runs (never ran before) | Runs (hash not in state) |
 | Re-apply, playbook unchanged | Skipped | Skipped |
 | Re-apply, playbook edited | Skipped | Runs (hash changed) |
+
+> Important Pitfall: `install_ansible` needs to remain alphabetically ahead of `provision` runner.
