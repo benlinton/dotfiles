@@ -8,7 +8,12 @@ if command -v ansible-playbook &> /dev/null; then
     elif grep -qi microsoft /proc/version 2>/dev/null; then
         ansible-playbook {{ joinPath .chezmoi.sourceDir "dot_bootstrap/provision-workstation-wsl.yml" | quote }} --ask-become-pass
         WIN_PLAYBOOK="$(wslpath -w {{ joinPath .chezmoi.sourceDir "dot_bootstrap/provision-workstation-windows.yml" | quote }})"
-        powershell.exe -ExecutionPolicy Bypass -Command "ansible-playbook '$WIN_PLAYBOOK'"
+        powershell.exe -ExecutionPolicy Bypass -Command "
+            \$machine = [System.Environment]::GetEnvironmentVariable('PATH', 'Machine')
+            \$user = [System.Environment]::GetEnvironmentVariable('PATH', 'User')
+            \$env:PATH = \"\$machine;\$user\"
+            ansible-playbook '$WIN_PLAYBOOK'
+        "
     else
         ansible-playbook {{ joinPath .chezmoi.sourceDir "dot_bootstrap/provision-workstation-linux.yml" | quote }} --ask-become-pass
     fi

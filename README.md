@@ -15,8 +15,8 @@ Supports:
 
 Long ago, I heavily customized my tools and environments for maximize efficiency. 
 Over time I found that approach slowed me down on shared environments.
-As a result I now aim for minimal customization.
-In addition, I generally prefer containers over local installs to maintain a controlled, predictable, and reproducible environment.
+As a result I now aim for minimal customization across all tooling.
+In addition, I generally prefer containers over local installs to maintain a more predictable, reproducible, and controlled environment.
 
 
 ## Quick start
@@ -31,7 +31,7 @@ Apply dotfiles and run ansible.
 export GITHUB_USERNAME=benlinton
 sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply $GITHUB_USERNAME
 ```
-> For macOS, this will install `brew` if missing.
+> For macOS, installs `brew` if missing.
 
 
 ## Useful commands

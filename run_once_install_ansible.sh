@@ -76,6 +76,15 @@ install_ansible_on_windows() {
         if (-not (Get-Command ansible-playbook -ErrorAction SilentlyContinue)) {
             Write-Host "Installing Ansible..."
             python -m pip install ansible
+            # Persist Scripts dir so future PowerShell sessions can find ansible-playbook
+            $pyScriptsDir = Join-Path (Split-Path (Get-Command python).Source -Parent) "Scripts"
+            if (Test-Path (Join-Path $pyScriptsDir "ansible-playbook.exe")) {
+                $userPath = [System.Environment]::GetEnvironmentVariable("PATH", "User")
+                if ($userPath -notlike "*$pyScriptsDir*") {
+                    [System.Environment]::SetEnvironmentVariable("PATH", "$userPath;$pyScriptsDir", "User")
+                    Write-Host "Added $pyScriptsDir to Windows PATH"
+                }
+            }
             Refresh-Path
         }
     '
@@ -110,7 +119,12 @@ elif is_windows; then
     ansible-playbook ~/.bootstrap/provision-workstation-wsl.yml --ask-become-pass
 
     WIN_PLAYBOOK="$(wslpath -w ~/.bootstrap/provision-workstation-windows.yml)"
-    powershell.exe -ExecutionPolicy Bypass -Command "ansible-playbook '$WIN_PLAYBOOK'"
+    powershell.exe -ExecutionPolicy Bypass -Command "
+        \$machine = [System.Environment]::GetEnvironmentVariable('PATH', 'Machine')
+        \$user = [System.Environment]::GetEnvironmentVariable('PATH', 'User')
+        \$env:PATH = \"\$machine;\$user\"
+        ansible-playbook '$WIN_PLAYBOOK'
+    "
 else
     ansible-playbook ~/.bootstrap/provision-workstation-linux.yml --ask-become-pass
 fi
