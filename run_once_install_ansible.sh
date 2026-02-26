@@ -50,48 +50,8 @@ install_ansible_on_macos() {
     brew install ansible
 }
 
-install_ansible_on_windows() {
-    powershell.exe -ExecutionPolicy Bypass -Command '
-        $ErrorActionPreference = "Stop"
-
-        function Refresh-Path {
-            $machine = [System.Environment]::GetEnvironmentVariable("PATH", "Machine")
-            $user    = [System.Environment]::GetEnvironmentVariable("PATH", "User")
-            $env:PATH = "$machine;$user"
-        }
-
-        if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
-            Write-Host "Installing winget..."
-            $installer = "$env:TEMP\AppInstaller.msixbundle"
-            Invoke-WebRequest -Uri "https://aka.ms/getwinget" -OutFile $installer
-            Add-AppxPackage $installer
-        }
-
-        if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
-            Write-Host "Installing Python 3..."
-            winget install --id Python.Python.3.12 --silent --accept-package-agreements --accept-source-agreements
-            Refresh-Path
-        }
-
-        if (-not (Get-Command ansible-playbook -ErrorAction SilentlyContinue)) {
-            Write-Host "Installing Ansible..."
-            python -m pip install ansible
-            # Persist Scripts dir so future PowerShell sessions can find ansible-playbook
-            $pyScriptsDir = Join-Path (Split-Path (Get-Command python).Source -Parent) "Scripts"
-            if (Test-Path (Join-Path $pyScriptsDir "ansible-playbook.exe")) {
-                $userPath = [System.Environment]::GetEnvironmentVariable("PATH", "User")
-                if ($userPath -notlike "*$pyScriptsDir*") {
-                    [System.Environment]::SetEnvironmentVariable("PATH", "$userPath;$pyScriptsDir", "User")
-                    Write-Host "Added $pyScriptsDir to Windows PATH"
-                }
-            }
-            Refresh-Path
-        }
-    '
-}
-
 # ----------------------------------------------------------------------------
-# Determine how to install ansible 
+# Determine how to install ansible
 # Assuming windows has wsl running a supported distro
 # ----------------------------------------------------------------------------
 if is_macos; then
@@ -105,26 +65,17 @@ elif ! is_windows; then
     exit 1
 fi
 
-if is_windows; then
-    install_ansible_on_windows
-fi
-
 # ----------------------------------------------------------------------------
 # Run playbooks
-# Windows includes provision-workstation-wls and provision-workstation-windows playbooks
+# Windows: WSL playbook via ansible, Windows native via PowerShell script
 # ----------------------------------------------------------------------------
 if is_macos; then
     ansible-playbook ~/.bootstrap/provision-workstation-macos.yml
 elif is_windows; then
     ansible-playbook ~/.bootstrap/provision-workstation-wsl.yml --ask-become-pass
-
-    WIN_PLAYBOOK="$(wslpath -w ~/.bootstrap/provision-workstation-windows.yml)"
-    powershell.exe -ExecutionPolicy Bypass -Command "
-        \$machine = [System.Environment]::GetEnvironmentVariable('PATH', 'Machine')
-        \$user = [System.Environment]::GetEnvironmentVariable('PATH', 'User')
-        \$env:PATH = \"\$machine;\$user\"
-        ansible-playbook '$WIN_PLAYBOOK'
-    "
+    # run Windows native provisioning without ansible
+    WIN_SCRIPT="$(wslpath -w ~/.bootstrap/provision-workstation-windows.ps1)"
+    powershell.exe -ExecutionPolicy Bypass -File "$WIN_SCRIPT"
 else
     ansible-playbook ~/.bootstrap/provision-workstation-linux.yml --ask-become-pass
 fi

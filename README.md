@@ -55,6 +55,9 @@ chezmoi diff
 # Edit a managed file (opens in $EDITOR, applies on save)
 chezmoi edit ~/.bashrc
 
+# View the current chezmoi state
+chezmoi state dump
+
 # Re-run a run_once script after changes
 chezmoi state delete-bucket --bucket=scriptOnce && chezmoi apply
 

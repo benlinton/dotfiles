@@ -1,19 +1,14 @@
 #!/usr/bin/env bash
 
-# bootstrap hash: {{ if eq .chezmoi.os "darwin" }}{{ include "dot_bootstrap/provision-workstation-macos.yml" | sha256sum }}{{ else if stat "/proc/sys/fs/binfmt_misc/WSLInterop" }}{{ include "dot_bootstrap/provision-workstation-wsl.yml" | sha256sum }}{{ include "dot_bootstrap/provision-workstation-windows.yml" | sha256sum }}{{ else }}{{ include "dot_bootstrap/provision-workstation-linux.yml" | sha256sum }}{{ end }}
+# bootstrap hash: {{ if eq .chezmoi.os "darwin" }}{{ include "dot_bootstrap/provision-workstation-macos.yml" | sha256sum }}{{ else if stat "/proc/sys/fs/binfmt_misc/WSLInterop" }}{{ include "dot_bootstrap/provision-workstation-wsl.yml" | sha256sum }}{{ include "dot_bootstrap/provision-workstation-windows.ps1" | sha256sum }}{{ else }}{{ include "dot_bootstrap/provision-workstation-linux.yml" | sha256sum }}{{ end }}
 
 if command -v ansible-playbook &> /dev/null; then
     if [[ "$(uname)" == "Darwin" ]]; then
         ansible-playbook {{ joinPath .chezmoi.sourceDir "dot_bootstrap/provision-workstation-macos.yml" | quote }}
     elif grep -qi microsoft /proc/version 2>/dev/null; then
         ansible-playbook {{ joinPath .chezmoi.sourceDir "dot_bootstrap/provision-workstation-wsl.yml" | quote }} --ask-become-pass
-        WIN_PLAYBOOK="$(wslpath -w {{ joinPath .chezmoi.sourceDir "dot_bootstrap/provision-workstation-windows.yml" | quote }})"
-        powershell.exe -ExecutionPolicy Bypass -Command "
-            \$machine = [System.Environment]::GetEnvironmentVariable('PATH', 'Machine')
-            \$user = [System.Environment]::GetEnvironmentVariable('PATH', 'User')
-            \$env:PATH = \"\$machine;\$user\"
-            ansible-playbook '$WIN_PLAYBOOK'
-        "
+        WIN_SCRIPT="$(wslpath -w {{ joinPath .chezmoi.sourceDir "dot_bootstrap/provision-workstation-windows.ps1" | quote }})"
+        powershell.exe -ExecutionPolicy Bypass -File "$WIN_SCRIPT"
     else
         ansible-playbook {{ joinPath .chezmoi.sourceDir "dot_bootstrap/provision-workstation-linux.yml" | quote }} --ask-become-pass
     fi
