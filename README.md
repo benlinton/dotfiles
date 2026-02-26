@@ -59,7 +59,7 @@ chezmoi edit ~/.bashrc
 chezmoi state dump
 
 # Re-run a run_once script after changes
-chezmoi state delete-bucket --bucket=scriptOnce && chezmoi apply
+chezmoi state delete-bucket --bucket=scriptState && chezmoi apply
 
 # Run Ansible playbook manually
 ansible-playbook ~/.bootstrap/provision-workstation-macos.yml   # macOS
@@ -67,6 +67,9 @@ ansible-playbook ~/.bootstrap/provision-workstation-linux.yml --ask-become-pass 
 ```
 
 ## Playbook run scenarios
+
+See [dot_bootstrap/](/dot_bootstrap/) for the various playbooks that may automatically run. 
+The ansible installer will run once on init, and the playbooks will run both on init and whenever they are modified.
 
 | Scenario | `run_once_*.sh` | `run_onchange_*.sh.tmpl` |
 |----------|-----------------|--------------------------|
