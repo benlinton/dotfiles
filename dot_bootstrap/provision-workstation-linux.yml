@@ -89,3 +89,17 @@
       when: jetbrains_mono_exists is failed
       ansible.builtin.shell: "fc-cache -fv {{ ansible_env.HOME }}/.fonts"
       changed_when: true
+
+    # ------------------------------------------------------------------------
+    # Install Claude Code
+    # ------------------------------------------------------------------------
+
+    - name: Check if Claude Code is installed
+      ansible.builtin.command: which claude
+      register: claude_installed
+      ignore_errors: true
+      changed_when: false
+
+    - name: Install Claude Code
+      ansible.builtin.shell: curl -fsSL https://claude.ai/install.sh | bash
+      when: claude_installed is failed

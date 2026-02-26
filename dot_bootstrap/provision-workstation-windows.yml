@@ -29,7 +29,7 @@
       failed_when: sevenzip_install.rc != 0 and 'already installed' not in sevenzip_install.stdout | lower
 
     # ------------------------------------------------------------------------
-    # Install JetBrains Mono Nerd Font
+    # Install fonts
     # ------------------------------------------------------------------------
 
     - name: Check if JetBrains Mono already installed in Windows fonts

@@ -9,6 +9,10 @@
       ansible.builtin.set_fact:
         remote_regular_user: "{{ ansible_facts['env'].get('SUDO_USER') or ansible_facts['user_id'] }}"
 
+    # ------------------------------------------------------------------------
+    # Install packages
+    # ------------------------------------------------------------------------
+
     - name: Install packages (macOS)
       become: false
       community.general.homebrew:
@@ -20,8 +24,22 @@
           - vim
         state: present
 
+    # ------------------------------------------------------------------------
+    # Install fonts
+    # ------------------------------------------------------------------------
+
     - name: Install JetBrains Mono Nerd Font (macOS)
       become: false
       community.general.homebrew_cask:
         name: font-jetbrains-mono-nerd-font
+        state: present
+
+    # ------------------------------------------------------------------------
+    # Install Claude Code
+    # ------------------------------------------------------------------------
+
+    - name: Install Claude Code (macOS)
+      become: false
+      community.general.homebrew_cask:
+        name: claude-code
         state: present
