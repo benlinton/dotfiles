@@ -69,6 +69,11 @@
         name: kitty
         state: present
 
+    - name: Install Obsidian (macOS)
+      community.general.homebrew_cask:
+        name: obsidian
+        state: present
+
     # - name: Install Slack (macOS)
     #   community.general.homebrew_cask:
     #     name: slack
