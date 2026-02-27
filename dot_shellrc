@@ -6,7 +6,7 @@
 # ----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------
-# Prompt color
+# Prompt
 # ----------------------------------------------------------------------------
 # _PROMPT_ID    = user@host color: red for root, yellow for remote (SSH), cyan for local
 #                 green = no dotfiles installed (system default) — intentionally unused here
@@ -21,6 +21,31 @@ else
 fi
 _PROMPT_INFO=$(printf '\033[34m')    # blue (path)
 _PROMPT_RESET=$(printf '\033[0m')    # reset
+
+# ----------------------------------------------------------------------------
+# Colors
+# ----------------------------------------------------------------------------
+# BSD ls (macOS): CLICOLOR enables color, LSCOLORS defines the scheme
+# Format: each pair = fg/bg for: dir symlink socket pipe exec block char setuid setgid sticky-dir other-writable-dir
+export CLICOLOR=1
+export LSCOLORS="ExGxFxDxCxEgEdxbxgxcxd"  # bold: blue dir, cyan link, magenta socket, green exec
+
+# LS_COLORS: used by GNU ls, grep, fd, tree, and many other tools
+if command -v dircolors >/dev/null 2>&1; then
+  eval "$(dircolors -b)"
+else
+  # Fallback for macOS (no dircolors): sensible defaults for tools that read LS_COLORS
+  export LS_COLORS='di=1;34:ln=1;36:so=1;35:pi=33:ex=1;32:bd=1;33:cd=1;33:su=37;41:sg=30;43:tw=30;42:ow=34;42'
+fi
+
+# Colorize commands that support "--color=auto"
+alias grep='grep --color=auto'
+if diff --color=auto /dev/null /dev/null >/dev/null 2>&1; then
+  alias diff='diff --color=auto'
+fi
+if ls --color=auto /dev/null >/dev/null 2>&1; then
+  alias ls='ls --color=auto'
+fi
 
 # ----------------------------------------------------------------------------
 # Editor
