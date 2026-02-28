@@ -6,7 +6,7 @@
 # ----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------
-# Prompt
+# Prompt (shell-agnostic)
 # ----------------------------------------------------------------------------
 # _PROMPT_ID    = user@host color: red for root, magenta for remote (SSH), cyan for local
 #                 green = no dotfiles installed (system default) — intentionally unused here
@@ -23,7 +23,7 @@ _PROMPT_INFO=$(printf '\033[34m')    # blue (path)
 _PROMPT_RESET=$(printf '\033[0m')    # reset
 
 # ----------------------------------------------------------------------------
-# Colors
+# Colors (shell-agnostic)
 # ----------------------------------------------------------------------------
 # BSD ls (macOS): CLICOLOR enables color, LSCOLORS defines the scheme
 # Format: each pair = fg/bg for: dir symlink socket pipe exec block char setuid setgid sticky-dir other-writable-dir
@@ -48,12 +48,12 @@ if ls --color=auto /dev/null >/dev/null 2>&1; then
 fi
 
 # ----------------------------------------------------------------------------
-# Editor
+# Editor (shell-agnostic)
 # ----------------------------------------------------------------------------
 export EDITOR=vim
 
 # ----------------------------------------------------------------------------
-# History
+# History (shell-agnostic)
 # ----------------------------------------------------------------------------
 export HISTSIZE=10000
 
@@ -84,17 +84,18 @@ elif [ -s "/usr/local/opt/nvm/nvm.sh" ]; then
 fi
 
 # ----------------------------------------------------------------------------
-# Kitty: use kitten ssh to propagate terminfo to remote hosts (OPTIONAL)
-# ----------------------------------------------------------------------------
-if command -v kitten >/dev/null 2>&1; then
-  alias ssh='kitten ssh'
-fi
-
-# ----------------------------------------------------------------------------
 # ssh-agent (OPTIONAL — requires smallstep)
 # ----------------------------------------------------------------------------
 if command -v step >/dev/null 2>&1; then
   if ! pgrep -u "$USER" ssh-agent >/dev/null 2>&1; then
     eval "$(ssh-agent -s)" >/dev/null
   fi
+fi
+
+# ----------------------------------------------------------------------------
+# Kitty terminal (OPTIONAL)
+# Use kitten ssh to propagate terminfo to remote hosts 
+# ----------------------------------------------------------------------------
+if command -v kitten >/dev/null 2>&1; then
+  alias ssh='kitten ssh'
 fi
