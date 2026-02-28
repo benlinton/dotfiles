@@ -84,6 +84,13 @@ elif [ -s "/usr/local/opt/nvm/nvm.sh" ]; then
 fi
 
 # ----------------------------------------------------------------------------
+# Kitty: use kitten ssh to propagate terminfo to remote hosts (OPTIONAL)
+# ----------------------------------------------------------------------------
+if command -v kitten >/dev/null 2>&1; then
+  alias ssh='kitten ssh'
+fi
+
+# ----------------------------------------------------------------------------
 # ssh-agent (OPTIONAL — requires smallstep)
 # ----------------------------------------------------------------------------
 if command -v step >/dev/null 2>&1; then
