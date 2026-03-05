@@ -120,7 +120,7 @@
 
     - name: Set custom Kitty icon (macOS)
       ansible.builtin.command:
-        cmd: fileicon set /Applications/kitty.app {{ ansible_facts['env']['HOME'] }}/.local/share/chezmoi/assets/icons/kitty.png
+        cmd: fileicon set /Applications/kitty.app {{ ansible_facts['env']['HOME'] }}/.local/share/chezmoi/assets/icons/applications/kitty-dark.png
       changed_when: false
 
     - name: Refresh Dock to apply icon changes (macOS)
