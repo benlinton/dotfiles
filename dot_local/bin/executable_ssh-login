@@ -18,12 +18,16 @@ set -e
 # Include --init flag to auto create ~/.config/step-ca/config
 if [[ "$1" == "--init" ]]; then
   mkdir -p ~/.config/step-ca
+  mkdir -p ~/.step/certs
   cat > ~/.config/step-ca/config <<'EOF'
 STEP_SSH_USER=CHANGE_ME_USERNAME
 STEP_PROVISIONER=admin
 STEP_CA_URL=CHANGE_ME_CA_URL
+STEP_ROOT=~/.step/certs/root_ca.crt
 EOF
   echo "Created ~/.config/step-ca/config — edit it."
+  echo "Then run:"
+  echo "  step ca root ~/.step/certs/root_ca.crt --ca-url <step_ca_url> --fingerprint <root_ca.crt_fingerprint>"
   exit 0
 fi
 
@@ -39,4 +43,5 @@ fi
 
 step ssh login "${1:-${STEP_SSH_USER}}" \
   --provisioner "${STEP_PROVISIONER:-admin}" \
-  --ca-url "${STEP_CA_URL}"
+  --ca-url "${STEP_CA_URL}" \
+  ${STEP_ROOT:+--root "${STEP_ROOT}"}
