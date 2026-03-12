@@ -11,6 +11,18 @@ Supports:
 - Windows (`wsl`)
 
 
+## How this works
+
+Chezmoi:
+- Gather one-time input data from the user
+- Install package manager and setup ansible
+- Install dotfiles - including global scripts, cheatsheets, and more
+
+Ansible:
+- Run 1) on first init or 2) if applicable ansible files change
+- Install packages, applications, fonts, system configuration (managed outside dotfiles), and more
+
+
 ## Philosophy
 
 Long ago, I heavily customized my tools and environments for maximize efficiency. 
@@ -21,10 +33,7 @@ In addition, I generally prefer containers over local installs to maintain a mor
 
 ## Quick start
 
-Either use a [package manager](https://www.chezmoi.io/install) **(recommended)** or install  `chezmoi` natively.
-```bash
-sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/.local/bin
-```
+Optionally use a [package manager](https://www.chezmoi.io/install) **(recommended)** or install  `chezmoi` natively (see Useful Commands).
 
 Apply dotfiles and run applicable ansible playbooks.
 ```bash
@@ -50,7 +59,12 @@ The ansible installer will run once on init, and the playbooks will run both on 
 
 ## Useful commands
 
+Run `cheatsheet chezmoi` to print useful commands in the terminal.
+
 ```bash
+# Install chezmoi without package manager
+sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/.local/bin
+
 # Manually make changes and commits from here
 cd ~/.local/share/chezmoi
 
