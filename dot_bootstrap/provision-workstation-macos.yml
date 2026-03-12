@@ -54,10 +54,10 @@
         name: claude-code
         state: present
 
-    - name: Install Docker (macOS)
-      community.general.homebrew_cask:
-        name: docker
-        state: present
+    # - name: Install Docker (macOS)
+    #   community.general.homebrew_cask:
+    #     name: docker
+    #     state: present
 
     - name: Install Firefox (macOS)
       community.general.homebrew_cask:
