@@ -10,6 +10,7 @@ Supports:
 - MacOS
 - Windows (`wsl`)
 
+
 ## How this works
 
 Chezmoi:
@@ -19,7 +20,8 @@ Chezmoi:
 
 Ansible:
 - Run 1) on first init or 2) if applicable ansible files change
-- Installs packages, applications, fonts, system configuration (managed outside dotfiles), and more
+- Install packages, applications, fonts, system configuration (managed outside dotfiles), and more
+
 
 ## Philosophy
 
