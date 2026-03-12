@@ -1,7 +1,25 @@
 {
   "permissions": {
+    "allow": [
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(echo *)",
+      "Bash(pwd)",
+      "Bash(which *)",
+      "Bash(whoami)"
+    ],
     "ask": [
-      "Bash(ssh *)"
+      "Bash(ssh *)",
+      "Bash(rm -rf *)",
+      "Bash(sudo *)",
+      "Bash(git push *)",
+      "Bash(git push --force *)",
+      "Bash(curl *)",
+      "Bash(wget *)"
     ]
   },
   "statusLine": {
