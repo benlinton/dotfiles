@@ -9,6 +9,19 @@
       ansible.builtin.set_fact:
         remote_regular_user: "{{ ansible_facts['env'].get('SUDO_USER') or ansible_facts['user_id'] }}"
 
+    # Brew casks like Docker and Tailscale call sudo internally in subprocesses
+    # that Ansible spawns without a TTY. Ansible's become pipes the password via
+    # stdin per-invocation — it never populates the credential cache, so brew's
+    # subprocess sudo calls fail. Grant NOPASSWD for the specific commands these
+    # casks need, then clean up at the end of the playbook.
+    - name: Allow passwordless sudo for brew cask operations
+      ansible.builtin.copy:
+        content: "{{ remote_regular_user }} ALL=(ALL) NOPASSWD:SETENV: ALL\n"
+        dest: /etc/sudoers.d/99-ansible-provision
+        mode: "0440"
+        validate: visudo -cf %s
+      become: true
+
     # ------------------------------------------------------------------------
     # Install packages
     # ------------------------------------------------------------------------
@@ -54,10 +67,10 @@
         name: claude-code
         state: present
 
-    # - name: Install Docker (macOS)
-    #   community.general.homebrew_cask:
-    #     name: docker
-    #     state: present
+    - name: Install Docker (macOS)
+      community.general.homebrew_cask:
+        name: docker
+        state: present
 
     - name: Install Firefox (macOS)
       community.general.homebrew_cask:
@@ -84,10 +97,10 @@
         name: slack
         state: present
 
-    # - name: Install Tailscale (macOS)
-    #   community.general.homebrew_cask:
-    #     name: tailscale
-    #     state: present
+    - name: Install Tailscale (macOS)
+      community.general.homebrew_cask:
+        name: tailscale
+        state: present
     
     - name: Install The Unarchiver (macOS)
       community.general.homebrew_cask:
@@ -132,3 +145,9 @@
       ansible.builtin.command:
         cmd: killall Dock
       changed_when: false
+
+    - name: Remove temporary sudo credential caching configuration
+      ansible.builtin.file:
+        path: /etc/sudoers.d/99-ansible-provision
+        state: absent
+      become: true

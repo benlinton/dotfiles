@@ -26,7 +26,7 @@ is_macos() {
 # ----------------------------------------------------------------------------
 if command -v ansible-playbook &> /dev/null; then
     if is_macos; then
-        ansible-playbook {{ joinPath .chezmoi.sourceDir "dot_bootstrap/provision-workstation-macos.yml" | quote }}
+        ansible-playbook {{ joinPath .chezmoi.sourceDir "dot_bootstrap/provision-workstation-macos.yml" | quote }} --ask-become-pass
     elif is_windows; then
         ansible-playbook {{ joinPath .chezmoi.sourceDir "dot_bootstrap/provision-workstation-wsl.yml" | quote }} --ask-become-pass
         WIN_SCRIPT="$(wslpath -w {{ joinPath .chezmoi.sourceDir "dot_bootstrap/provision-workstation-windows.ps1" | quote }})"
