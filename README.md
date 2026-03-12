@@ -60,13 +60,16 @@ chezmoi init --apply $GITHUB_USERNAME
 # (Optional) Init for non-standard local path - then add sourceDir to the generated chezmoi.toml config
 chezmoi init --apply --source /local/path/to/dotfiles
 
-# Apply dotfiles from source dir
-chezmoi apply
-
 # See what changes would be made
 chezmoi diff
 
-# Edit a managed file (opens in $EDITOR, applies on save)
+# Apply source → home dir 
+chezmoi apply <OPTIONAL_PATH>
+
+# Copy home dir edits → source
+chezmoi re-add <OPTIONAL_PATH>
+
+# Edit a managed file in place (opens in $EDITOR, applies on save)
 chezmoi edit ~/.bashrc
 
 # View the current chezmoi state
