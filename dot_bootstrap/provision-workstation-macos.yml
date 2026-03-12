@@ -84,10 +84,10 @@
         name: slack
         state: present
 
-    - name: Install Tailscale (macOS)
-      community.general.homebrew_cask:
-        name: tailscale
-        state: present
+    # - name: Install Tailscale (macOS)
+    #   community.general.homebrew_cask:
+    #     name: tailscale
+    #     state: present
     
     - name: Install The Unarchiver (macOS)
       community.general.homebrew_cask:
