@@ -44,25 +44,30 @@
         name: alfred
         state: present
 
-    # - name: Install Chrome (macOS)
-    #   community.general.homebrew_cask:
-    #     name: google-chrome
-    #     state: present
+    - name: Install ChatGPT (macOS)
+      community.general.homebrew_cask:
+        name: chatgpt
+        state: present
     
     - name: Install Claude Code (macOS)
       community.general.homebrew_cask:
         name: claude-code
         state: present
 
-    # - name: Install Docker (macOS)
-    #   community.general.homebrew_cask:
-    #     name: docker
-    #     state: present
+    - name: Install Docker (macOS)
+      community.general.homebrew_cask:
+        name: docker
+        state: present
 
-    # - name: Install Firefox (macOS)
-    #   community.general.homebrew_cask:
-    #     name: firefox
-    #     state: present
+    - name: Install Firefox (macOS)
+      community.general.homebrew_cask:
+        name: firefox
+        state: present
+
+    - name: Install Google Chrome (macOS)
+      community.general.homebrew_cask:
+        name: google-chrome
+        state: present
 
     - name: Install Kitty (macOS)
       community.general.homebrew_cask:
@@ -74,40 +79,40 @@
         name: obsidian
         state: present
 
-    # - name: Install Slack (macOS)
-    #   community.general.homebrew_cask:
-    #     name: slack
-    #     state: present
+    - name: Install Slack (macOS)
+      community.general.homebrew_cask:
+        name: slack
+        state: present
 
-    # - name: Install Tailscale (macOS)
-    #   community.general.homebrew_cask:
-    #     name: tailscale
-    #     state: present
+    - name: Install Tailscale (macOS)
+      community.general.homebrew_cask:
+        name: tailscale
+        state: present
     
-    # - name: Install The Unarchiver (macOS)
-    #   community.general.homebrew_cask:
-    #     name: the-unarchiver
-    #     state: present
+    - name: Install The Unarchiver (macOS)
+      community.general.homebrew_cask:
+        name: the-unarchiver
+        state: present
 
-    # - name: Install Transmit (macOS)
-    #   community.general.homebrew_cask:
-    #     name: transmit
-    #     state: present
+    - name: Install Transmit (macOS)
+      community.general.homebrew_cask:
+        name: transmit
+        state: present
 
-    # - name: Install Viscosity (macOS)
-    #   community.general.homebrew_cask:
-    #     name: viscosity
-    #     state: present
+    - name: Install Viscosity (macOS)
+      community.general.homebrew_cask:
+        name: viscosity
+        state: present
 
-    # - name: Install VLC (macOS)
-    #   community.general.homebrew_cask:
-    #     name: vlc
-    #     state: present
+    - name: Install VLC (macOS)
+      community.general.homebrew_cask:
+        name: vlc
+        state: present
 
-    # - name: Install VSCode (macOS)
-    #   community.general.homebrew_cask:
-    #     name: visual-studio-code
-    #     state: present
+    - name: Install VSCode (macOS)
+      community.general.homebrew_cask:
+        name: visual-studio-code
+        state: present
 
     # ------------------------------------------------------------------------
     # Customize applications
