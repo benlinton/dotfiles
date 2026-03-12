@@ -1,0 +1,23 @@
+# MacOS Runbook
+
+Install xcode.
+
+    xcode-select --install
+
+Create ssh key.
+
+    ssh-keygen -t ed25519 -C "user@host"  # or email address
+
+Add public key to [github](https://github.com/settings/keys).
+
+Install dotfiles.
+
+    export GITHUB_USERNAME=benlinton
+    sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply $GITHUB_USERNAME
+
+This will also install `ansible`, `brew`, casks, fonts, applications, and more.
+
+Edit chezmoi git repo to use ssh.
+
+    sed -i '' 's|https://github.com/|git@github.com:|g' ~/.local/share/chezmoi/.git/config
+    
