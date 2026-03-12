@@ -33,8 +33,8 @@ maybe_sudo() {
 install_homebrew() {
     if ! command -v brew &>/dev/null; then
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-        /bin/bash eval "$(/usr/local/bin/brew shellenv)"
     fi
+    /bin/bash eval "$(/usr/local/bin/brew shellenv)"
 }
 
 install_ansible_on_debian() {
