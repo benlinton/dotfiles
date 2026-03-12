@@ -1,7 +1,7 @@
 # Input saved in ~/.config/chezmoi/chezmoi.toml
 
 [data]
-  machine_profile = {{ promptString "Machine profile (workstation|server)" | quote }}
-  name = {{ promptString "Full name" | quote }}
-  email = {{ promptString "Email" | quote }}
-  githubUser = {{ promptString "GitHub username" | quote }}
+  machine_profile = {{ promptStringOnce . "data.machine_profile" "Machine profile (workstation|server)" | quote }}
+  name = {{ promptStringOnce . "data.name" "Full name" | quote }}
+  email = {{ promptStringOnce . "data.email" "Email" | quote }}
+  githubUser = {{ promptStringOnce . "data.githubUser" "GitHub username" | quote }}

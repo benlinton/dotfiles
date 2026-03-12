@@ -1,0 +1,17 @@
+[user]
+    name = {{ .chezmoi.config.data.name }}
+    email = {{ .chezmoi.config.data.email }}
+
+[github]
+    user = {{ .chezmoi.config.data.githubUser }}
+
+[core]
+    editor = vim
+    autocrlf = input
+    excludesfile = ~/.gitignore_global
+
+[push]
+    default = current
+
+[init]
+    defaultBranch = main
