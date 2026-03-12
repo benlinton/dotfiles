@@ -21,7 +21,7 @@ In addition, I generally prefer containers over local installs to maintain a mor
 
 ## Quick start
 
-Either use a [package manager](https://www.chezmoi.io/install) **(recommended)** or install  `chezmoi` natively.
+Optionally use a [package manager](https://www.chezmoi.io/install) **(recommended)** or install  `chezmoi` natively.
 ```bash
 sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/.local/bin
 ```
@@ -49,6 +49,8 @@ The ansible installer will run once on init, and the playbooks will run both on 
 
 
 ## Useful commands
+
+Run `cheatsheet chezmoi` to for something similar in the terminal.
 
 ```bash
 # Manually make changes and commits from here
