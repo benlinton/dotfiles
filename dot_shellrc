@@ -58,13 +58,30 @@ export EDITOR=vim
 export HISTSIZE=10000
 
 # ----------------------------------------------------------------------------
-# PATH (OPTIONAL)
+# cheatsheet lookup (shell-agnostic)
+# See docs/cheatsheets/
+# ----------------------------------------------------------------------------
+cheatsheet() {
+  local dir="$HOME/.local/share/chezmoi/docs/cheatsheets"
+  if [ -z "$1" ]; then
+    echo "Available cheatsheets:"
+    ls "$dir" | sed 's/\.md$//'
+  elif [ -f "$dir/$1.md" ]; then
+    cat "$dir/$1.md"
+  else
+    echo "No cheatsheet found for '$1'. Run 'cheatsheet' to list available topics."
+    return 1
+  fi
+}
+
+# ----------------------------------------------------------------------------
+# OPTIONAL: ~/.local/bin PATH (shell-agnostic)
 # ----------------------------------------------------------------------------
 # Add $HOME/.local/bin to front of PATH (if exists)
 test -d "$HOME/.local/bin" && export PATH="$HOME/.local/bin:$PATH"
 
 # ----------------------------------------------------------------------------
-# pyenv (OPTIONAL)
+# OPTIONAL: pyenv (shell-agnostic)
 # ----------------------------------------------------------------------------
 if [ -d "$HOME/.pyenv" ]; then
   export PYENV_ROOT="$HOME/.pyenv"
@@ -73,7 +90,7 @@ if [ -d "$HOME/.pyenv" ]; then
 fi
 
 # ----------------------------------------------------------------------------
-# nvm (OPTIONAL)
+# OPTIONAL: nvm (shell-agnostic)
 # ----------------------------------------------------------------------------
 if [ -s "/opt/homebrew/opt/nvm/nvm.sh" ]; then
   export NVM_DIR="$HOME/.nvm"
@@ -84,7 +101,7 @@ elif [ -s "/usr/local/opt/nvm/nvm.sh" ]; then
 fi
 
 # ----------------------------------------------------------------------------
-# ssh-agent (OPTIONAL — requires smallstep)
+# OPTIONAL: ssh-agent - requires smallstep (shell-agnostic)
 # ----------------------------------------------------------------------------
 if command -v step >/dev/null 2>&1; then
   if ! pgrep -u "$USER" ssh-agent >/dev/null 2>&1; then
@@ -93,7 +110,7 @@ if command -v step >/dev/null 2>&1; then
 fi
 
 # ----------------------------------------------------------------------------
-# Kitty terminal (OPTIONAL)
+# OPTIONAL: Kitty terminal (shell-agnostic)
 # Use kitten ssh to propagate terminfo to remote hosts 
 # ----------------------------------------------------------------------------
 if command -v kitten >/dev/null 2>&1; then
