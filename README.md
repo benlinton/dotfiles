@@ -33,10 +33,7 @@ In addition, I generally prefer containers over local installs to maintain a mor
 
 ## Quick start
 
-Optionally use a [package manager](https://www.chezmoi.io/install) **(recommended)** or install  `chezmoi` natively.
-```bash
-sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/.local/bin
-```
+Optionally use a [package manager](https://www.chezmoi.io/install) **(recommended)** or install  `chezmoi` natively (see Useful Commands).
 
 Apply dotfiles and run applicable ansible playbooks.
 ```bash
@@ -65,6 +62,9 @@ The ansible installer will run once on init, and the playbooks will run both on 
 Run `cheatsheet chezmoi` to print useful commands in the terminal.
 
 ```bash
+# Install chezmoi without package manager
+sh -c "$(curl -fsLS get.chezmoi.io)" -- -b ~/.local/bin
+
 # Manually make changes and commits from here
 cd ~/.local/share/chezmoi
 
