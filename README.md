@@ -50,7 +50,7 @@ The ansible installer will run once on init, and the playbooks will run both on 
 
 ## Useful commands
 
-Run `cheatsheet chezmoi` to for something similar in the terminal.
+Run `cheatsheet chezmoi` to print useful commands in the terminal.
 
 ```bash
 # Manually make changes and commits from here
