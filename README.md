@@ -10,6 +10,16 @@ Supports:
 - MacOS
 - Windows (`wsl`)
 
+## How this works
+
+Chezmoi:
+- Gather one-time input from the user
+- Install package manager and setup ansible
+- Install dotfiles - including global scripts, cheatsheets, and more
+- Run ansible 1) on first run or 2) if applicable ansible files change
+
+Ansible:
+- Installs packages, applications, fonts, system configuration (managed outside dotfiles), and more
 
 ## Philosophy
 
