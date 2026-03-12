@@ -17,7 +17,7 @@ Install dotfiles.
 
 This will also install `ansible`, `brew`, casks, fonts, applications, and more.
 
-Edit chezmoi git repo to use ssh.
+Edit chezmoi git repo to use ssh - after ssh key is added to github.
 
     sed -i '' 's|https://github.com/|git@github.com:|g' ~/.local/share/chezmoi/.git/config
     
