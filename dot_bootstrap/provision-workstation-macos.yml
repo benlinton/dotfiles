@@ -140,6 +140,7 @@
       ansible.builtin.command:
         cmd: fileicon set /Applications/kitty.app {{ ansible_facts['env']['HOME'] }}/.local/share/chezmoi/assets/icons/applications/kitty-dark.png
       changed_when: false
+      failed_when: false
 
     - name: Refresh Dock to apply icon changes (macOS)
       ansible.builtin.command:
