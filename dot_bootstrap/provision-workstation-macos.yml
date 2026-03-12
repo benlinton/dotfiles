@@ -97,6 +97,11 @@
         name: slack
         state: present
 
+    - name: Install Superwhisper (macOS)
+      community.general.homebrew_cask:
+        name: superwhisper
+        state: present
+
     - name: Install Tailscale (macOS)
       community.general.homebrew_cask:
         name: tailscale
