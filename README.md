@@ -13,12 +13,12 @@ Supports:
 ## How this works
 
 Chezmoi:
-- Gather one-time input from the user
+- Gather one-time input data from the user
 - Install package manager and setup ansible
 - Install dotfiles - including global scripts, cheatsheets, and more
-- Run ansible 1) on first run or 2) if applicable ansible files change
 
 Ansible:
+- Run 1) on first init or 2) if applicable ansible files change
 - Installs packages, applications, fonts, system configuration (managed outside dotfiles), and more
 
 ## Philosophy
