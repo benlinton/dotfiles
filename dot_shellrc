@@ -75,7 +75,7 @@ cheatsheet() {
 }
 
 # ----------------------------------------------------------------------------
-# OPTIONAL: ~/.local/bin PATH (shell-agnostic)
+# OPTIONAL: PATH (shell-agnostic)
 # ----------------------------------------------------------------------------
 # Add $HOME/.local/bin to front of PATH (if exists)
 test -d "$HOME/.local/bin" && export PATH="$HOME/.local/bin:$PATH"
