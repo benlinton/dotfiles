@@ -31,6 +31,7 @@
         name:
           - ack
           - chezmoi
+          - fnm
           - git
           - gh
           - htop
@@ -80,11 +81,6 @@
     - name: Install Google Chrome (macOS)
       community.general.homebrew_cask:
         name: google-chrome
-        state: present
-
-    - name: Install Karabiner Elements (macOS)
-      community.general.homebrew_cask:
-        name: karabiner-elements
         state: present
 
     - name: Install Kitty (macOS)
