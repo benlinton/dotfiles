@@ -31,6 +31,7 @@
     ]
   },
   "model": "opus",
+  "includeCoAuthoredBy": false,
   "statusLine": {
     "type": "command",
     "command": "bash ~/.claude/statusline.sh"
