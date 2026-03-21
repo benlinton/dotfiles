@@ -75,6 +75,18 @@ cheatsheet() {
 }
 
 # ----------------------------------------------------------------------------
+# Reload shell config without exiting (shell-agnostic)
+# ----------------------------------------------------------------------------
+reload() {
+  echo "Reloading shell..."
+  case "$(ps -p $$ -o comm=)" in
+    *zsh*)  exec zsh ;;
+    *bash*) exec bash ;;
+    *)      echo "Unknown shell; restart manually." ;;
+  esac
+}
+
+# ----------------------------------------------------------------------------
 # OPTIONAL: PATH (shell-agnostic)
 # ----------------------------------------------------------------------------
 # Add $HOME/.local/bin to front of PATH (if exists)
