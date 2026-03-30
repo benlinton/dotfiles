@@ -82,6 +82,11 @@
       community.general.homebrew_cask:
         name: google-chrome
         state: present
+    
+    - name: Install KeepingYouAwake (macOS)
+      community.general.homebrew_cask:
+        name: keepingyouawake
+        state: present
 
     - name: Install Kitty (macOS)
       community.general.homebrew_cask:
