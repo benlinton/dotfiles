@@ -6,38 +6,56 @@ set -e
 #   ssh-login --init
 #
 # Valid config locations (first found wins):
-#   ~/.step/config
-#   /etc/step-ca/config
+#   ~/.step/config/ssh-login.conf
+#   /etc/step-ca/ssh-login.conf
 #
 # Config:
 #   STEP_SSH_USER      - SSH user to log in as (e.g. myuser)
 #   STEP_PROVISIONER   - CA provisioner name (e.g. admin)
 #   STEP_CA_URL        - CA URL (e.g. https://ca.example.com:9000)
 #   STEP_ROOT          - /path/to/root_ca.crt
+#
+# STEP_CA_URL and STEP_ROOT fall back to step-cli defaults.json if unset.
 # ----------------------------------------------------------------------------
 
-# Include --init flag to auto create ~/.config/step-ca/config
+# Include --init flag to auto create config
 if [[ "$1" == "--init" ]]; then
-  mkdir -p ~/.step/certs
-  cat > ~/.config/step-ca/config <<'EOF'
+  mkdir -p ~/.step/config ~/.step/certs
+  cat > ~/.step/config/ssh-login.conf <<'EOF'
 STEP_SSH_USER=CHANGE_ME_USERNAME
 STEP_PROVISIONER=admin
 STEP_CA_URL=CHANGE_ME_CA_URL
 STEP_ROOT=~/.step/certs/root_ca.crt
 EOF
-  echo "Created ~/.step/config — edit it."
+  echo "Created ~/.step/config/ssh-login.conf — edit it."
   echo "Then run:"
   echo "  step ca root ~/.step/certs/root_ca.crt --ca-url <step_ca_url> --fingerprint <root_ca.crt_fingerprint>"
   exit 0
 fi
 
 # Look for config
-if [[ -f ~/.step/config ]]; then
-  source ~/.step/config
-elif [[ -f /etc/step-ca/config ]]; then
-  source /etc/step-ca/config
+if [[ -f ~/.step/config/ssh-login.conf ]]; then
+  source ~/.step/config/ssh-login.conf
+elif [[ -f /etc/step-ca/ssh-login.conf ]]; then
+  source /etc/step-ca/ssh-login.conf
 else
   echo >&2 "No config file found. Run: ssh-login --init"
+  exit 1
+fi
+
+# Fall back to step-cli defaults.json for CA URL and root cert
+step_defaults="${HOME}/.step/config/defaults.json"
+if [[ -f "$step_defaults" ]]; then
+  if [[ -z "$STEP_CA_URL" || "$STEP_CA_URL" == "CHANGE_ME_CA_URL" ]]; then
+    STEP_CA_URL=$(jq -r '.["ca-url"] // empty' "$step_defaults")
+  fi
+  if [[ -z "$STEP_ROOT" ]]; then
+    STEP_ROOT=$(jq -r '.root // empty' "$step_defaults")
+  fi
+fi
+
+if [[ -z "$STEP_CA_URL" || "$STEP_CA_URL" == "CHANGE_ME_CA_URL" ]]; then
+  echo >&2 "STEP_CA_URL is not set. Edit ~/.step/config/ssh-login.conf or run: step ca bootstrap"
   exit 1
 fi
 
