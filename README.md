@@ -19,7 +19,7 @@ Chezmoi:
 - Install dotfiles - including global scripts, cheatsheets, and more
 
 Ansible:
-- Run 1) on first init or 2) if applicable ansible files change
+- Run on first init or if applicable ansible files change
 - Install packages, applications, fonts, system configuration (managed outside dotfiles), and more
 
 

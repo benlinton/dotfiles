@@ -129,6 +129,17 @@ if command -v step >/dev/null 2>&1; then
 fi
 
 # ----------------------------------------------------------------------------
+# OPTIONAL: zoxide (shell-agnostic)
+# ----------------------------------------------------------------------------
+if command -v zoxide >/dev/null 2>&1; then
+  case "$(ps -p $$ -o comm=)" in
+    *zsh*)  eval "$(zoxide init zsh)" ;;
+    *bash*) eval "$(zoxide init bash)" ;;
+    *)      eval "$(zoxide init posix --hook prompt)" ;;
+  esac
+fi
+
+# ----------------------------------------------------------------------------
 # OPTIONAL: Kitty terminal (shell-agnostic)
 # Use kitten ssh to propagate terminfo to remote hosts 
 # ----------------------------------------------------------------------------
