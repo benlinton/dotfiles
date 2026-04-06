@@ -30,12 +30,16 @@
       community.general.homebrew:
         name:
           - ack
+          - age  # for git encyption
           - chezmoi
           - fnm
           - git
+          - git-filter-repo
           - gh
           - htop
+          - sops  # for git encyption
           - step
+          - tailscale
           - tmux
           - vim
         state: present
