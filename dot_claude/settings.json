@@ -39,5 +39,8 @@
   "voiceEnabled": true,
   "enabledPlugins": {
     "skill-creator@claude-plugins-official": true
+  },
+  "env": {
+    "DISABLE_AUTOUPDATER": "1"
   }
 }

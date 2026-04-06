@@ -1,0 +1,3 @@
+#!/bin/sh
+brew update && brew upgrade claude-code
+exec claude "$@"
