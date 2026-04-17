@@ -59,15 +59,15 @@ export HISTSIZE=10000
 
 # ----------------------------------------------------------------------------
 # cheatsheet lookup (shell-agnostic)
-# See docs/cheatsheets/
+# See docs/cheatsheets/ — files use .sh extension for GitHub syntax highlighting
 # ----------------------------------------------------------------------------
 cheatsheet() {
   local dir="$HOME/.local/share/chezmoi/docs/cheatsheets"
   if [ -z "$1" ]; then
     echo "Available cheatsheets:"
-    ls "$dir" | sed 's/\.md$//'
-  elif [ -f "$dir/$1.md" ]; then
-    cat "$dir/$1.md"
+    ls "$dir" | sed 's/\.sh$//'
+  elif [ -f "$dir/$1.sh" ]; then
+    cat "$dir/$1.sh"
   else
     echo "No cheatsheet found for '$1'. Run 'cheatsheet' to list available topics."
     return 1
