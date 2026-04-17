@@ -16,7 +16,7 @@ Supports:
 Chezmoi:
 - Gather one-time input data from the user
 - Install package manager and setup ansible
-- Install dotfiles - including global scripts, cheatsheets, and more
+- Install dotfiles - including global scripts, [cheatsheets](docs/cheatsheets/) (use `cheatsheet` command), and more
 
 Ansible:
 - Run on first init or if applicable ansible files change

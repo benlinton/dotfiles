@@ -1,6 +1,6 @@
 # Cheatsheet Patterns
 
-Style guide for files in `docs/cheatsheets/`.
+Style guide for files in `docs/cheatsheets/`. View cheatsheets in the terminal with the `cheatsheet` command (defined in `dot_shellrc`).
 
 ## File format
 
