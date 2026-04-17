@@ -1,6 +1,6 @@
 # VIM CHEATSHEET
 
-# MODES
+## MODES
 i                   # Insert mode (before cursor)
 a                   # Insert mode (after cursor)
 I                   # Insert at beginning of line
@@ -12,7 +12,7 @@ V                   # Visual mode (line)
 Ctrl-v              # Visual mode (block)
 Esc                 # Return to normal mode
 
-# MOVEMENT
+## MOVEMENT
 h j k l             # Left, down, up, right
 w / b               # Next / previous word
 e                   # End of word
@@ -25,7 +25,7 @@ Ctrl-d/u            # Scroll half page down / up
 Ctrl-f/b            # Scroll full page down / up
 { / }               # Previous / next blank line (paragraph)
 
-# EDITING
+## EDITING
 x                   # Delete character under cursor
 dd                  # Delete line
 dw                  # Delete word
@@ -41,7 +41,7 @@ yy                  # Yank (copy) line
 yw                  # Yank word
 y$                  # Yank to end of line
 
-# TEXT OBJECTS (combine with d, c, y, v)
+## TEXT OBJECTS (combine with d, c, y, v)
 iw / aw             # Inner / around word
 is / as             # Inner / around sentence
 ip / ap             # Inner / around paragraph
@@ -51,7 +51,7 @@ i{ / a{             # Inner / around braces
 i[ / a[             # Inner / around brackets
 it / at             # Inner / around HTML/XML tag
 
-# SEARCH & REPLACE
+## SEARCH & REPLACE
 /pattern            # Search forward
 ?pattern            # Search backward
 n / N               # Next / previous match
@@ -60,7 +60,7 @@ n / N               # Next / previous match
 :%s/old/new/gc      # Replace all with confirmation
 :s/old/new/g        # Replace all on current line
 
-# FILES & BUFFERS
+## FILES & BUFFERS
 :e <file>           # Open file
 :w                  # Save
 :w <file>           # Save as
@@ -71,7 +71,7 @@ n / N               # Next / previous match
 :ls                 # List open buffers
 :bd                 # Close buffer
 
-# WINDOWS & TABS
+## WINDOWS & TABS
 :sp <file>          # Horizontal split
 :vsp <file>         # Vertical split
 Ctrl-w h/j/k/l      # Move between windows
@@ -81,20 +81,20 @@ Ctrl-w |            # Maximize width
 :tabnew             # New tab
 gt / gT             # Next / previous tab
 
-# MARKS & JUMPS
+## MARKS & JUMPS
 m<a>                # Set mark a (lowercase = file-local, uppercase = global)
 `<a>                # Jump to mark a
 ''                  # Jump to last position
 Ctrl-o/i            # Jump back / forward in jump list
 
-# MACROS
+## MACROS
 q<a>                # Start recording macro into register a
 q                   # Stop recording
 @<a>                # Play macro a
 @@                  # Repeat last macro
 <n>@<a>             # Play macro n times
 
-# MISC
+## MISC
 :!<cmd>             # Run shell command
 :r !<cmd>           # Insert output of shell command
 gg=G                # Re-indent entire file
