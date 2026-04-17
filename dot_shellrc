@@ -64,7 +64,9 @@ export HISTSIZE=10000
 cheatsheet() {
   local dir="$HOME/.local/share/chezmoi/docs/cheatsheets"
   if [ -z "$1" ]; then
-    echo "Usage: cheatsheet <topic>"
+    echo "Usage:"
+    echo "  cheatsheet <topic>"
+    echo ""
     echo "Available cheatsheets:"
     ls "$dir" | sed 's/\.sh$//' | sed 's/^/  /'
   elif [ -f "$dir/$1.sh" ]; then
