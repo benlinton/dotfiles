@@ -16,7 +16,7 @@ Supports:
 Chezmoi:
 - Gather one-time input data from the user
 - Install package manager and setup ansible
-- Install dotfiles - including global scripts, [cheatsheets](docs/cheatsheets/) (use `cheatsheet` command), and more
+- Install dotfiles - including global scripts, [cheatsheets](docs/cheatsheet-guide.md), and more
 
 Ansible:
 - Run on first init or if applicable ansible files change
@@ -95,4 +95,7 @@ chezmoi state delete-bucket --bucket=scriptState && chezmoi apply
 # Run Ansible playbook manually
 ansible-playbook ~/.bootstrap/provision-workstation-macos.yml   # macOS
 ansible-playbook ~/.bootstrap/provision-workstation-linux.yml --ask-become-pass  # Linux
+
+# List available cheatsheets
+cheatsheet
 ```
