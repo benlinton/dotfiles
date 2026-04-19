@@ -80,6 +80,10 @@ chezmoi diff
 # Apply source → home dir 
 chezmoi apply <OPTIONAL_PATH>
 
+# Apply without ansible provisioning
+chezmoi apply --exclude=scripts  # skips both run_once_* and run_onchange_*
+chezmoi apply --exclude=run_onchange # only allow run_once scripts to execute
+
 # Copy home dir edits → source
 chezmoi re-add <OPTIONAL_PATH>
 
