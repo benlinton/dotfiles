@@ -1,1 +1,17 @@
+# macOS
 .DS_Store
+._*
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# Vim
+*.swp
+*.swo
+*~
+Session.vim
+.netrwhist
+
+# ctags
+tags
