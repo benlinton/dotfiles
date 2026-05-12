@@ -1,5 +1,6 @@
 assets/
 docs/
+scripts/
 .gitignore
 CLAUDE.md
 README.md
