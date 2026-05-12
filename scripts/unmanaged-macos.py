@@ -7,7 +7,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-PLAYBOOK = Path.home() / ".bootstrap" / "provision-workstation-macos.yml"
+PLAYBOOK = Path(__file__).resolve().parent.parent / "dot_bootstrap" / "provision-workstation-macos.yml"
 APP_DIRS = [Path("/Applications"), Path.home() / "Applications"]
 
 MODULE_RE = re.compile(r"^(\s+)(community\.general\.homebrew(?:_cask)?):\s*$")
