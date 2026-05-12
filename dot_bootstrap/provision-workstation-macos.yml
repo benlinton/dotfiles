@@ -73,9 +73,9 @@
         name: claude-code
         state: present
 
-    - name: Install Docker (macOS)
+    - name: Install Docker Desktop (macOS)
       community.general.homebrew_cask:
-        name: docker
+        name: docker-desktop
         state: present
 
     - name: Install Firefox (macOS)
@@ -115,7 +115,7 @@
 
     - name: Install Tailscale (macOS)
       community.general.homebrew_cask:
-        name: tailscale
+        name: tailscale-app
         state: present
     
     - name: Install The Unarchiver (macOS)
