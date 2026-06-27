@@ -42,6 +42,7 @@
           - tailscale
           - tmux
           - vim
+          - yq
           - zoxide
         state: present
 
