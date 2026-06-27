@@ -41,6 +41,7 @@
           - tmux
           - vim
           - unzip
+          - yq
         state: present
         update_cache: true
 
@@ -55,6 +56,7 @@
           - htop
           - tmux
           - vim
+          - yq
         state: present
 
     # ------------------------------------------------------------------------
