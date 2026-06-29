@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Personal dotfiles managed with [Chezmoi](https://chezmoi.io) (file management/templating) and [Ansible](https://github.com/ansible/ansible) (system provisioning). The philosophy is **minimal customization** to stay productive on shared environments.
 
+> **Managed-file policy.** Files this repo deploys into `$HOME` are generated output — editing the live copies causes drift. Before creating or editing any file under `$HOME`, or when you see a "Managed by chezmoi" disclaimer at the top of a file, read and follow [`docs/managed-dotfiles-policy.md`](docs/managed-dotfiles-policy.md): edit the source (not the live copy), reconcile drift with `chezmoi re-add` (not `apply --force`), and add the standard disclaimer to comment-capable managed files.
+
 ## Chezmoi file naming conventions
 
 Chezmoi uses filename prefixes/suffixes to determine how files are handled:
@@ -68,3 +70,4 @@ ansible-playbook ~/.bootstrap/provision-workstation-linux.yml --ask-become-pass 
 ## Notes
 
 - `.chezmoiignore` excludes `CLAUDE.md`, `README.md`, `docs/`, and `.gitignore` from being deployed to the home directory
+- Editing managed files: follow [`docs/managed-dotfiles-policy.md`](docs/managed-dotfiles-policy.md) — edit the chezmoi source, never the live `$HOME` copy
