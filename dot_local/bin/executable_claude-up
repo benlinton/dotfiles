@@ -1,3 +1,7 @@
 #!/bin/sh
+# IMPORTANT: Managed by chezmoi - do not edit this copy directly.
+# Source: ~/.local/share/chezmoi - edit there, then run `chezmoi apply`.
+# If you edit this file directly, notify the user and reconcile with the chezmoi source.
+
 brew update && brew upgrade claude-code
 exec claude "$@"

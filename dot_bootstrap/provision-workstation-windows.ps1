@@ -1,3 +1,7 @@
+# IMPORTANT: Managed by chezmoi - do not edit this copy directly.
+# Source: ~/.local/share/chezmoi - edit there, then run `chezmoi apply`.
+# If you edit this file directly, notify the user and reconcile with the chezmoi source.
+
 # Windows workstation provisioning (using winget, not ansible)
 $ErrorActionPreference = 'Stop'
 

@@ -1,3 +1,7 @@
+# IMPORTANT: Managed by chezmoi - do not edit this copy directly.
+# Source: ~/.local/share/chezmoi - edit there, then run `chezmoi apply`.
+# If you edit this file directly, notify the user and reconcile with the chezmoi source.
+
 # History prefix search with up/down arrows
 "\e[A": history-search-backward
 "\e[B": history-search-forward

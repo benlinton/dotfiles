@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# IMPORTANT: Managed by chezmoi - do not edit this copy directly.
+# Source: ~/.local/share/chezmoi - edit there, then run `chezmoi apply`.
+# If you edit this file directly, notify the user and reconcile with the chezmoi source.
 
 data=$(cat)
 session_id=$(echo "$data" | jq -r '.session_id // "default"')
