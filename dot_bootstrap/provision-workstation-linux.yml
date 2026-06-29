@@ -41,7 +41,6 @@
           - tmux
           - vim
           - unzip
-          - yq
         state: present
         update_cache: true
 
@@ -56,8 +55,14 @@
           - htop
           - tmux
           - vim
-          - yq
         state: present
+
+    - name: Install yq (mikefarah, Linux)
+      become: true
+      ansible.builtin.get_url:
+        url: "https://github.com/mikefarah/yq/releases/latest/download/yq_linux_{{ 'arm64' if ansible_facts['architecture'] == 'aarch64' else 'amd64' }}"
+        dest: /usr/local/bin/yq
+        mode: "0755"
 
     # ------------------------------------------------------------------------
     # Install fonts
