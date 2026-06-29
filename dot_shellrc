@@ -1,4 +1,7 @@
 #!/usr/bin/env sh
+# IMPORTANT: Managed by chezmoi - do not edit this copy directly.
+# Source: ~/.local/share/chezmoi - edit there, then run `chezmoi apply`.
+# If you edit this file directly, notify the user and reconcile with the chezmoi source.
 
 # ----------------------------------------------------------------------------
 # shellrc is sourced by both .bashrc and .zshrc
@@ -120,6 +123,18 @@ if [ -s "/opt/homebrew/opt/nvm/nvm.sh" ]; then
 elif [ -s "/usr/local/opt/nvm/nvm.sh" ]; then
   export NVM_DIR="$HOME/.nvm"
   \. "/usr/local/opt/nvm/nvm.sh"
+fi
+
+# ----------------------------------------------------------------------------
+# OPTIONAL: bun (shell-agnostic)
+# ----------------------------------------------------------------------------
+if [ -d "$HOME/.bun" ]; then
+  export BUN_INSTALL="$HOME/.bun"
+  export PATH="$BUN_INSTALL/bin:$PATH"
+  # completions are zsh-specific
+  case "$(ps -p $$ -o comm=)" in
+    *zsh*) [ -s "$BUN_INSTALL/_bun" ] && \. "$BUN_INSTALL/_bun" ;;
+  esac
 fi
 
 # ----------------------------------------------------------------------------

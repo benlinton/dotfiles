@@ -1,4 +1,10 @@
 {
+  "env": {
+    "DISABLE_AUTOUPDATER": "1",
+    "CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY": "1",
+    "DISABLE_TELEMETRY": "1"
+  },
+  "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
       "Bash(git status *)",
@@ -12,6 +18,14 @@
       "Bash(which *)",
       "Bash(whoami)"
     ],
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(**/secrets/*)",
+      "Read(**/*credential*)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)"
+    ],
     "ask": [
       "Bash(ssh *)",
       "Bash(rm -rf *)",
@@ -20,27 +34,17 @@
       "Bash(git push --force *)",
       "Bash(curl *)",
       "Bash(wget *)"
-    ],
-    "deny": [
-      "Read(.env)",
-      "Read(.env.*)",
-      "Read(**/secrets/*)",
-      "Read(**/*credential*)",
-      "Read(**/*.pem)",
-      "Read(**/*.key)"
     ]
   },
-  "model": "opus",
-  "includeCoAuthoredBy": false,
+  "model": "opus[1m]",
   "statusLine": {
     "type": "command",
     "command": "bash ~/.claude/statusline.sh"
   },
-  "voiceEnabled": true,
   "enabledPlugins": {
     "skill-creator@claude-plugins-official": true
   },
-  "env": {
-    "DISABLE_AUTOUPDATER": "1"
-  }
+  "agentPushNotifEnabled": true,
+  "voiceEnabled": true,
+  "tui": "fullscreen"
 }
