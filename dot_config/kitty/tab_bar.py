@@ -17,10 +17,34 @@
 # Tweak the glyphs/colours/precedence in STATES below.
 
 import os
+import time
 
 from kitty.tab_bar import as_rgb, draw_tab_with_powerline, get_boss
 
 STATE_DIR = "/tmp/claude-kitty-state"
+
+# kitty imports this module once at startup, so this stamps ~this kitty
+# session's start. kitty reuses window ids (1, 2, 3, ...) on every relaunch,
+# but the per-window state files in STATE_DIR survive across restarts (only
+# cleared on reboot), so a new window can inherit a previous session's stale
+# "waiting". Any state file older than this stamp is from a prior kitty
+# session and must be ignored/removed.
+_SESSION_START = time.time()
+
+
+def _sweep_stale():
+    # Drop state files left over from previous kitty sessions (see above).
+    try:
+        names = os.listdir(STATE_DIR)
+    except OSError:
+        return
+    for name in names:
+        path = os.path.join(STATE_DIR, name)
+        try:
+            if os.stat(path).st_mtime < _SESSION_START:
+                os.remove(path)
+        except OSError:
+            pass
 
 # checked in order -> first match wins (waiting outranks working)
 # (state name, glyph, 0xRRGGBB)
@@ -65,6 +89,9 @@ def draw_tab(
     draw_data, screen, tab, before, max_tab_length, index, is_last, extra_data
 ):
     try:
+        if index == 0:
+            # once per tab-bar redraw, before any tab reads its state
+            _sweep_stale()
         states = _states_for_tab(tab.tab_id)
         for name, glyph, color in STATES:
             if name in states:

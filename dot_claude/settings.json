@@ -40,6 +40,12 @@
     "UserPromptSubmit": [
       { "hooks": [{ "type": "command", "command": "\"$HOME/.claude/tab-state.sh\" working" }] }
     ],
+    "PreToolUse": [
+      { "hooks": [{ "type": "command", "command": "\"$HOME/.claude/tab-state.sh\" working" }] }
+    ],
+    "PostToolUse": [
+      { "hooks": [{ "type": "command", "command": "\"$HOME/.claude/tab-state.sh\" working" }] }
+    ],
     "Stop": [
       { "hooks": [{ "type": "command", "command": "\"$HOME/.claude/tab-state.sh\" waiting" }] }
     ],
