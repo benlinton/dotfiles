@@ -39,6 +39,7 @@
       ansible.builtin.apt:
         name:
           - fontconfig
+          - fzf
           - git
           - gh
           - htop
@@ -54,6 +55,7 @@
       ansible.builtin.dnf:
         name:
           - fontconfig
+          - fzf
           - git
           - gh
           - htop

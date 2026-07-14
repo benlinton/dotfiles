@@ -37,6 +37,7 @@
           - age  # for git encyption
           - chezmoi
           - fnm
+          - fzf
           - git
           - git-filter-repo
           - gh

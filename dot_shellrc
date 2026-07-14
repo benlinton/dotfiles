@@ -147,6 +147,18 @@ if command -v step >/dev/null 2>&1; then
 fi
 
 # ----------------------------------------------------------------------------
+# OPTIONAL: fzf (shell-agnostic)
+# Fuzzy finder: powers Ctrl-R history search, Ctrl-T file/Alt-C dir widgets,
+# and zoxide's interactive `zi` picker. No POSIX integration; zsh/bash only.
+# ----------------------------------------------------------------------------
+if command -v fzf >/dev/null 2>&1; then
+  case "$(ps -p $$ -o comm=)" in
+    *zsh*)  eval "$(fzf --zsh)" ;;
+    *bash*) eval "$(fzf --bash)" ;;
+  esac
+fi
+
+# ----------------------------------------------------------------------------
 # OPTIONAL: zoxide (shell-agnostic)
 # ----------------------------------------------------------------------------
 if command -v zoxide >/dev/null 2>&1; then
