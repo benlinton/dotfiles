@@ -27,39 +27,93 @@
       "Read(**/*.key)"
     ],
     "ask": [
-      "Bash(ssh *)",
-      "Bash(rm -rf *)",
-      "Bash(sudo *)",
-      "Bash(git push *)",
-      "Bash(git push --force *)",
-      "Bash(curl *)",
-      "Bash(wget *)"
-    ]
-  },
-  "hooks": {
-    "UserPromptSubmit": [
-      { "hooks": [{ "type": "command", "command": "\"$HOME/.claude/tab-state.sh\" working" }] }
-    ],
-    "PreToolUse": [
-      { "hooks": [{ "type": "command", "command": "\"$HOME/.claude/tab-state.sh\" working" }] }
-    ],
-    "PostToolUse": [
-      { "hooks": [{ "type": "command", "command": "\"$HOME/.claude/tab-state.sh\" working" }] }
-    ],
-    "Stop": [
-      { "hooks": [{ "type": "command", "command": "\"$HOME/.claude/tab-state.sh\" waiting" }] }
-    ],
-    "Notification": [
-      { "hooks": [{ "type": "command", "command": "\"$HOME/.claude/tab-state.sh\" waiting" }] }
-    ],
-    "SessionStart": [
-      { "hooks": [{ "type": "command", "command": "\"$HOME/.claude/tab-state.sh\" idle" }] }
-    ],
-    "SessionEnd": [
-      { "hooks": [{ "type": "command", "command": "\"$HOME/.claude/tab-state.sh\" idle" }] }
+      "Bash(rm -r*)",
+      "Bash(git push --force*)",
+      "Bash(git push -f*)"
     ]
   },
   "model": "opus[1m]",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/tab-state.sh\" working"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/tab-state.sh\" working"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/mode-gate.sh\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/tab-state.sh\" working"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/tab-state.sh\" waiting"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/tab-state.sh\" waiting"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/tab-state.sh\" idle"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.claude/tab-state.sh\" idle"
+          }
+        ]
+      }
+    ]
+  },
   "statusLine": {
     "type": "command",
     "command": "bash ~/.claude/statusline.sh"
@@ -67,7 +121,8 @@
   "enabledPlugins": {
     "skill-creator@claude-plugins-official": true
   },
+  "tui": "fullscreen",
   "agentPushNotifEnabled": true,
   "voiceEnabled": true,
-  "tui": "fullscreen"
+  "skipDangerousModePermissionPrompt": true
 }
