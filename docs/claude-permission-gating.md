@@ -8,7 +8,7 @@ This doc describes the *workflow*, not the current rule set — read the live fi
 for that:
 
 - `~/.claude/settings.json` → source `dot_claude/settings.json` (**chezmoi-managed**)
-- `~/.claude/mode-gate.sh` (**not** chezmoi-managed — see the chezmoi section)
+- `~/.claude/permission-gate.sh`
 
 ## The two enforcement layers ("both places")
 
@@ -17,7 +17,7 @@ for that:
    are gitignore-style, and are **anchored to the start of the command** — so they
    do *not* match a command buried in a compound like `foo && git push`.
 
-2. **The PreToolUse hook** `mode-gate.sh` (matcher `Bash`). It reads the command
+2. **The PreToolUse hook** `permission-gate.sh` (matcher `Bash`). It reads the command
    and `permission_mode` from stdin and can emit `permissionDecision: "ask"` to
    force a prompt. It matches **anywhere in the command string**, so it *is* what
    catches compound commands and odd flag forms the native rules miss.
@@ -122,29 +122,29 @@ To truly let a currently-gated command run silently in bypass you must relax **b
 layers: move/remove it from the hook **and** delete any native `ask` rule for it —
 because native `ask` still fires in bypass. Touching only one leaves it prompting.
 
-## chezmoi: settings.json is managed, mode-gate.sh is not
+## chezmoi: both files are managed — edit the source, not the live copy
 
-`settings.json` is deployed by chezmoi, so **edit the source, not the live copy**
-(see `managed-dotfiles-policy.md`). It's strict JSON, so it carries **no** disclaimer
-comment — rely on `chezmoi source-path ~/.claude/settings.json` to confirm it's
-managed.
+Both `settings.json` and `permission-gate.sh` are deployed by chezmoi, so **edit the
+source, not the live copy** (see `managed-dotfiles-policy.md`):
+
+- `~/.claude/settings.json` → `dot_claude/settings.json`
+- `~/.claude/permission-gate.sh` → `dot_claude/executable_permission-gate.sh`
+  (the `executable_` prefix preserves the `+x` bit; the script carries the standard
+  managed-file disclaimer after its shebang. `settings.json` is strict JSON so it
+  can't — confirm it's managed with `chezmoi source-path` instead.)
 
 ```bash
 chezmoi source-path ~/.claude/settings.json   # -> dot_claude/settings.json (managed)
-chezmoi diff ~/.claude/settings.json          # preview source-vs-live before apply
+chezmoi diff ~/.claude/permission-gate.sh     # preview source-vs-live before apply
 ```
 
-Two valid ways to edit:
+Two valid ways to edit either file:
 
-- Edit `dot_claude/settings.json` in the repo, then `chezmoi apply`, **or**
-- Edit the live `~/.claude/settings.json`, then pull it back with
-  `chezmoi re-add ~/.claude/settings.json`.
+- Edit the source in the repo, then `chezmoi apply`, **or**
+- Edit the live `~/.claude/…` copy, then pull it back with
+  `chezmoi re-add ~/.claude/<file>`.
 
 Never `chezmoi apply --force` over a drifted live file — it discards live changes.
-
-`mode-gate.sh` is currently **unmanaged** (`chezmoi source-path` errors on it). Edits
-to it are not reverted by `chezmoi apply`, but also aren't tracked or backed up. To
-bring it under management, add it as `dot_claude/executable_mode-gate.sh` and re-add.
 
 ## Verify after any change
 
@@ -153,8 +153,8 @@ bring it under management, add it as `dot_claude/executable_mode-gate.sh` and re
 jq . ~/.claude/settings.json >/dev/null && echo OK
 
 # 2. Exercise the hook directly (test BOTH modes for gated commands)
-echo '{"tool_input":{"command":"sudo reboot"},"permission_mode":"default"}' | ~/.claude/mode-gate.sh
-echo '{"tool_input":{"command":"sudo reboot"},"permission_mode":"bypassPermissions"}' | ~/.claude/mode-gate.sh
+echo '{"tool_input":{"command":"sudo reboot"},"permission_mode":"default"}' | ~/.claude/permission-gate.sh
+echo '{"tool_input":{"command":"sudo reboot"},"permission_mode":"bypassPermissions"}' | ~/.claude/permission-gate.sh
 ```
 
 Expect JSON containing `"permissionDecision":"ask"` when it should prompt, and empty

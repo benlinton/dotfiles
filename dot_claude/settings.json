@@ -58,7 +58,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$HOME/.claude/mode-gate.sh\""
+            "command": "\"$HOME/.claude/permission-gate.sh\""
           }
         ]
       }
