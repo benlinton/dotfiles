@@ -84,6 +84,11 @@ ctrl+shift+p>w                         # Pick a word and type it
 ctrl+shift+p>h                         # Pick a git hash
 kitten hints --type path --program -   # Custom hints invocation (many --type options)
 
+## MOUSE
+ctrl+shift+click                       # Open the link under the cursor (works even when a program
+                                       #   like tmux/vim/less has grabbed the mouse; also skips the
+                                       #   plain-click delay). Plain click opens links only when ungrabbed.
+
 ## MISC
 ctrl+shift+f2                          # Edit kitty.conf in $EDITOR (chezmoi-managed — see note)
 ctrl+cmd+, (macOS) / ctrl+shift+f5     # Reload config without restart
