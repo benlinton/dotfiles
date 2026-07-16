@@ -124,6 +124,7 @@
   },
   "tui": "fullscreen",
   "agentPushNotifEnabled": true,
+  "remoteControlAtStartup": false,
   "voiceEnabled": true,
   "skipDangerousModePermissionPrompt": true
 }
