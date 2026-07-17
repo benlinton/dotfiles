@@ -5,6 +5,16 @@
 
 data=$(cat)
 session_id=$(echo "$data" | jq -r '.session_id // "default"')
+
+# DIAGNOSTIC (temporary): log statusline invocation cadence per kitty window so
+# we can tell whether Claude Code invokes the statusline while idle vs only
+# while working (decides if tab-bar freshness reconciliation is viable).
+# Disable by removing the flag: rm /tmp/claude-kitty-state/.debug
+if [ -f /tmp/claude-kitty-state/.debug ]; then
+  _ts=$(perl -MTime::HiRes -e 'printf "%.3f", Time::HiRes::time()' 2>/dev/null || date +%s)
+  printf '%s wid=%s session=%s\n' "$_ts" "${KITTY_WINDOW_ID:-?}" "$session_id" \
+    >> /tmp/claude-kitty-state/statusline.log 2>/dev/null
+fi
 total=$(echo "$data" | jq '(.context_window.total_input_tokens // 0) + (.context_window.total_output_tokens // 0)')
 prev_file="/tmp/.claude-statusline-prev-${session_id}"
 cum_file="/tmp/.claude-statusline-cum-${session_id}"
