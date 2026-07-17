@@ -6,7 +6,7 @@ running in it:
 | Glyph | Colour | Meaning | Written by |
 |---|---|---|---|
 | `▸` | green (`0x00CC66`) | working | `UserPromptSubmit`, `PreToolUse`, `PostToolUse` |
-| `⏸` | amber (`0xFFB000`) | waiting / needs you | `Stop`, `Notification` |
+| `⏸` | amber (`0xFFB000`) | waiting / needs you | `Stop`, `Notification` (permission prompts only — see below) |
 | *(none)* | — | idle | `SessionStart`, `SessionEnd` (file removed) |
 
 This doc is the pickup point for the **known "wrong icon" bug** (see below) and
@@ -51,17 +51,44 @@ missed or out-of-order write persists until the next event happens to correct it
    aborts a turn and the `Stop` hook does not reliably fire, so nothing writes
    `waiting`.
 2. **Stuck `waiting`** (⏸ pause shown while the session is actually running).
-   Observed during **repeated subagent shell-outs** (Task tool), *not* an
-   interrupt. A `waiting` was written and the expected `working` refresh didn't
-   overwrite it.
+   **Root cause found (2026-07-17) and fixed** — see below. Was mis-attributed to
+   subagents; the real trigger is `Notification`'s idle nudge firing mid-tool.
 
 Open questions the docs don't answer (hence the instrumentation):
 
-- Does `Stop` fire on ESC interrupt? (Empirically: seems **not**.)
+- Does `Stop` fire on ESC interrupt? (Empirically: seems **not** — this is the
+  remaining cause of stuck `working` #1, still unfixed.)
 - Do a subagent's `PreToolUse`/`PostToolUse` fire the **parent window's** hooks?
-- Does the statusline command tick while the session is **idle**, or only while
-  working? (Early data: fires irregularly on activity, 0.5–12s gaps *while
-  working* — so any freshness-based reconciler needs a generous threshold.)
+- ~~Does the statusline tick as a heartbeat while working?~~ **Answered: no.** Log
+  analysis showed **zero** statusline beats during a 3-min silent `Bash` and none
+  during a 26-min idle. It fires only at activity boundaries. `working` is
+  likewise stamped only at tool *start*/*end*, so there is **no continuous
+  working signal** — which rules out any freshness/TTL reconciler (a TTL short
+  enough to catch an interrupt would blank the icon mid-long-tool).
+
+### Root cause of stuck `waiting` (fixed 2026-07-17)
+
+`Notification` fires for **two unrelated** things: (1) a permission prompt
+(genuinely needs you), and (2) a ~60s idle-input nudge. The idle nudge **also
+fires while a long tool or subagent `Task` is running** (the input box is idle
+the whole time), so the old unconditional `Notification → waiting` flipped the
+tab to ⏸ for the tool's entire duration, healing only at the next `PostToolUse`.
+Confirmed in the log: a `Notification` 7s into a 3-min `Bash` held ⏸ from
+10:54:24 until 10:57:19.
+
+**Fix:** `Notification` now calls `tab-state.sh notify`, which inspects the hook
+`message` and writes `waiting` only for permission prompts; the idle nudge is
+dropped (unknown messages still default to `waiting` so no genuine "needs you" is
+lost). Normal turn-end ⏸ is unaffected — it comes from the `Stop` hook. The
+message-matching is deliberately loose (`*permission*` / `*input*`); the debug
+log now records `msg=` so the patterns can be verified/tuned against real
+notifications.
+
+**Not** the cause: window-id reuse on tab close. Within one kitty run, window ids
+are monotonic and never recycled (ids observed: 2, 4, 36, 39 — strictly
+increasing), and each window's hooks/renderer agree on its id. Closing a tab can
+orphan a state file, but no live window ever reads it. Cross-*restart* reuse is
+handled by `_sweep_stale()`.
 
 ## Diagnostic instrumentation (temporary)
 
@@ -105,10 +132,13 @@ What to look for: a final `wrote=working` with the statusline going silent right
 after (→ stuck-working / interrupt), or a `wrote=waiting` from `Notification`
 landing mid-work with no following `working` (→ stuck-waiting).
 
-## Fix direction (not yet implemented)
+## Fix direction
 
-Likely a combination of: (a) an interrupt-safe way to mark `waiting` when a turn
-ends for any reason, and (b) a freshness/ground-truth reconciler in `tab_bar.py`
-so a stale `working` downgrades instead of sticking. Nail the open questions from
-the logs *first* — the two failure modes have different causes and a speculative
-single fix risks trading one wrong-direction error for another.
+- **Stuck `waiting` (#2): DONE** — `Notification` no longer writes `waiting` for
+  its idle nudge (see "Root cause of stuck `waiting`" above).
+- **Stuck `working` (#1): still open.** On ESC interrupt no hook fires, so the
+  `working` file is never corrected; it self-heals only when the next turn ends
+  (`Stop`). A freshness/TTL reconciler is **not** viable — there's no continuous
+  working heartbeat (see the answered open question), so a TTL can't tell a
+  long-running tool from an aborted turn. Needs a real interrupt-time signal
+  (does Claude Code expose one?) before it's worth touching.
