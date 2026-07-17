@@ -72,3 +72,4 @@ ansible-playbook ~/.bootstrap/provision-workstation-linux.yml --ask-become-pass 
 - `.chezmoiignore` excludes `CLAUDE.md`, `README.md`, `docs/`, and `.gitignore` from being deployed to the home directory
 - Editing managed files: follow [`docs/managed-dotfiles-policy.md`](docs/managed-dotfiles-policy.md) — edit the chezmoi source, never the live `$HOME` copy
 - Changing Claude Code permission rules (allow/ask/deny for Bash commands, mode-conditional gating): follow [`docs/claude-permission-gating.md`](docs/claude-permission-gating.md) — the native `settings.json` rules and the `permission-gate.sh` hook must be kept in sync
+- Kitty tab status icons for Claude Code (▸ working / ⏸ waiting), plus the known "wrong icon" bug and its live diagnostic instrumentation: see [`docs/kitty-claude-tab-icons.md`](docs/kitty-claude-tab-icons.md)
