@@ -39,6 +39,41 @@ Design notes worth knowing:
   the first tab of each redraw. This is *cross-session* hygiene only — it does
   not fix the in-session bug below.
 
+## Gotchas / hard-won facts (learned 2026-07-17)
+
+Things that cost real debugging time — read these before re-deriving them:
+
+- **`working` is stamped only at tool *boundaries*, not during execution.**
+  `PreToolUse` writes `working` when a tool starts, `PostToolUse` when it ends —
+  nothing in between. So during a long tool the state file's mtime looks *stale*
+  even though the session is genuinely working. Do **not** treat a stale
+  `working` mtime as "stopped."
+- **No continuous "working" heartbeat exists.** The statusline is *not* one — it
+  fires only at activity boundaries (zero beats during a 3-min silent `Bash`, and
+  silent through a 26-min idle). Statusline *silence* therefore means nothing on
+  its own; it looks identical during a long tool and during a true idle. This
+  rules out any freshness/TTL reconciler in `tab_bar.py`.
+- **Multiple concurrent Claude sessions share one `debug.log`,** each writing its
+  own `wid=`. When reading logs, **always filter to the window you care about**
+  (`grep 'wid=<ID> '`) — mixing two sessions' timelines is the fastest way to
+  misdiagnose. (This exact trap first looked like an id mismatch; it was two
+  sessions.)
+- **`KITTY_WINDOW_ID` is captured at process launch and inherited by children,**
+  so a session's `claude` process, its hooks, and its `Bash` sub-shells all agree
+  on the id, and it matches the `w.id` the renderer iterates. Verify with:
+  ```sh
+  # id in the live claude process's environment (walk `ppid` to find the pid)
+  ps eww -o command= -p <claude-pid> | tr ' ' '\n' | grep '^KITTY_WINDOW_ID='
+  ```
+- **Window ids are monotonic within a kitty run and never recycled** — closing
+  tabs does not free an id for reuse (observed sequence across opens/closes: 2, 4,
+  36, 39). To re-test if ever in doubt:
+  ```sh
+  grep SessionStart /tmp/claude-kitty-state/debug.log | grep -oE 'wid=[0-9]+'
+  # strictly increasing, no repeats => a closed tab can never feed a live window
+  # another session's file. (Cross-*restart* reuse is handled by _sweep_stale.)
+  ```
+
 ## Known bug: intermittent wrong icon
 
 Reported 2026-07-17. Icons are *usually* right but occasionally stick. Because
@@ -128,9 +163,15 @@ statusline beats) and compare against the current on-disk state. Ad-hoc:
 cat /tmp/claude-kitty-state/<ID>
 ```
 
-What to look for: a final `wrote=working` with the statusline going silent right
-after (→ stuck-working / interrupt), or a `wrote=waiting` from `Notification`
-landing mid-work with no following `working` (→ stuck-waiting).
+What to look for: the **last state write** for the window vs. what the tab
+actually showed. A final `wrote=working` with no following `Stop` → stuck-working
+(interrupt — see #1). A `wrote=waiting event=Notification` landing between a
+`PreToolUse` and its matching `PostToolUse` → the mid-tool false-⏸ that was fixed
+(should no longer occur; if it does, check the `msg=` field — an idle nudge
+should now resolve to `ignore`, only `*permission*` writes `waiting`).
+
+Note: statusline *silence* is **not** a signal (see Gotchas) — it is silent
+during long tools and during idle alike. Read the state writes, not the beats.
 
 ## Fix direction
 
