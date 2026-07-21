@@ -79,7 +79,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$HOME/.claude/tab-state.sh\" waiting"
+            "command": "\"$HOME/.claude/tab-state.sh\" stop"
           }
         ]
       }

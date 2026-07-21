@@ -6,7 +6,8 @@ running in it:
 | Glyph | Colour | Meaning | Written by |
 |---|---|---|---|
 | `▸` | green (`0x00CC66`) | working | `UserPromptSubmit`, `PreToolUse`, `PostToolUse` |
-| `⏸` | amber (`0xFFB000`) | waiting / needs you | `Stop`, `Notification` (permission prompts only — see below) |
+| `⏸` | amber (`0xFFB000`) | waiting for your input | `Notification` (permission prompts only — see below) |
+| `⏹` | blue (`0x3B82F6`) | turn ended, your move | `Stop` |
 | *(none)* | — | idle | `SessionStart`, `SessionEnd` (file removed) |
 
 This doc is the pickup point for the **known "wrong icon" bug** (see below) and
@@ -21,8 +22,9 @@ read the live files — they carry their own header comments:
 
 State is a **single last-writer-wins file per kitty window** at
 `/tmp/claude-kitty-state/<KITTY_WINDOW_ID>`, containing the literal word
-`working` or `waiting` (absent = idle). Claude Code hooks run `tab-state.sh
-<state>`; the script writes the file. `tab_bar.py` is imported by kitty once at
+`working`, `waiting`, or `stop` (absent = idle). Claude Code hooks run
+`tab-state.sh <state>`; the script writes the file. `tab_bar.py` is imported by
+kitty once at
 startup and, on every tab-bar redraw, reads the state file(s) for the windows in
 each tab and prepends the glyph before handing off to kitty's powerline renderer.
 
@@ -31,8 +33,9 @@ Design notes worth knowing:
 - **Why a file, not an escape sequence:** Claude Code runs hooks without a
   controlling tty, so writing to `/dev/tty` fails. A file needs no kitty remote
   control (which is disabled by default — see commit `9fb38ac`).
-- **Precedence:** `waiting` outranks `working` when a tab has multiple windows
-  (a split that needs you wins). See `STATES` in `tab_bar.py`.
+- **Precedence:** for a tab with multiple windows (a split), the shown glyph is
+  `waiting` > `working` > `stop` — a pane that needs you wins, else anything
+  running, else turn-ended. See `STATES` in `tab_bar.py`.
 - **Stale-session sweep:** kitty reuses window ids (1, 2, 3…) across restarts,
   but state files survive until reboot, so `tab_bar.py` records its import time
   (`_SESSION_START`) and `_sweep_stale()` drops any state file older than that on
@@ -127,7 +130,8 @@ Confirmed in the log: a `Notification` 7s into a 3-min `Bash` held ⏸ from
 **Fix:** `Notification` now calls `tab-state.sh notify`, which inspects the hook
 `message` and writes `waiting` only for permission prompts; the idle nudge is
 dropped (unknown messages still default to `waiting` so no genuine "needs you" is
-lost). Normal turn-end ⏸ is unaffected — it comes from the `Stop` hook. The
+lost). Normal turn-end is unaffected — it comes from the `Stop` hook (now the
+`stop`/⏹ state; the `⏸`/`waiting` glyph in this section predates that split). The
 message-matching is deliberately loose (`*permission*` / `*input*`); the debug
 log now records `msg=` so the patterns can be verified/tuned against real
 notifications.

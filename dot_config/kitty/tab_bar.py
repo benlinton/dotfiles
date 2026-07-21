@@ -10,9 +10,10 @@
 # State is written per-window by Claude Code hooks (see ~/.claude/tab-state.sh,
 # wired up in ~/.claude/settings.json) into /tmp/claude-kitty-state/<window-id>:
 #
-#   UserPromptSubmit -> "working"  -> ▸ green
-#   Stop/Notification -> "waiting" -> ⏸ amber (takes precedence: it needs you)
-#   SessionStart/End -> file removed -> idle -> no glyph
+#   UserPromptSubmit/PreToolUse/PostToolUse -> "working" -> ▸ green
+#   Notification (permission prompt)        -> "waiting" -> ⏸ amber (needs your input)
+#   Stop                                    -> "stop"    -> ⏹ blue  (turn ended, your move)
+#   SessionStart/End -> file removed        -> idle      -> no glyph
 #
 # Tweak the glyphs/colours/precedence in STATES below.
 
@@ -47,11 +48,13 @@ def _sweep_stale():
         except OSError:
             pass
 
-# checked in order -> first match wins (waiting outranks working)
+# checked in order -> first match wins. For a split tab with multiple panes:
+# waiting (needs you) > working (running) > stop (turn ended, your move).
 # (state name, glyph, 0xRRGGBB)
 STATES = (
-    ("waiting", "⏸", 0xFFB000),  # amber
-    ("working", "▸", 0x00CC66),  # green
+    ("waiting", "⏸", 0xFFB000),  # amber — needs your input (permission prompt)
+    ("working", "▸", 0x00CC66),  # green — running
+    ("stop",    "⏹", 0x3B82F6),  # blue  — turn ended, your move
 )
 
 
