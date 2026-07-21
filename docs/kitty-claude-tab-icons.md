@@ -10,9 +10,9 @@ running in it:
 | `⏹` | blue (`0x3B82F6`) | turn ended, your move | `Stop` |
 | *(none)* | — | idle | `SessionStart`, `SessionEnd` (file removed) |
 
-This doc is the pickup point for the **known "wrong icon" bug** (see below) and
-the diagnostic instrumentation currently wired up to chase it. For the mechanics,
-read the live files — they carry their own header comments:
+This doc records the **"wrong icon" bug** and how it was diagnosed and fixed
+(see below). For the mechanics, read the live files — they carry their own header
+comments:
 
 - `dot_config/kitty/tab_bar.py` → `~/.config/kitty/tab_bar.py` (renderer)
 - `dot_claude/executable_tab-state.sh` → `~/.claude/tab-state.sh` (state writer)
@@ -56,11 +56,10 @@ Things that cost real debugging time — read these before re-deriving them:
   silent through a 26-min idle). Statusline *silence* therefore means nothing on
   its own; it looks identical during a long tool and during a true idle. This
   rules out any freshness/TTL reconciler in `tab_bar.py`.
-- **Multiple concurrent Claude sessions share one `debug.log`,** each writing its
-  own `wid=`. When reading logs, **always filter to the window you care about**
-  (`grep 'wid=<ID> '`) — mixing two sessions' timelines is the fastest way to
-  misdiagnose. (This exact trap first looked like an id mismatch; it was two
-  sessions.)
+- **Multiple concurrent Claude sessions are independent per window.** When
+  diagnosing, always pin the exact `KITTY_WINDOW_ID` you care about — conflating
+  two sessions' timelines is the fastest way to misdiagnose (this trap first
+  looked like an id mismatch; it was two sessions).
 - **`KITTY_WINDOW_ID` is captured at process launch and inherited by children,**
   so a session's `claude` process, its hooks, and its `Bash` sub-shells all agree
   on the id, and it matches the `w.id` the renderer iterates. Verify with:
@@ -70,12 +69,9 @@ Things that cost real debugging time — read these before re-deriving them:
   ```
 - **Window ids are monotonic within a kitty run and never recycled** — closing
   tabs does not free an id for reuse (observed sequence across opens/closes: 2, 4,
-  36, 39). To re-test if ever in doubt:
-  ```sh
-  grep SessionStart /tmp/claude-kitty-state/debug.log | grep -oE 'wid=[0-9]+'
-  # strictly increasing, no repeats => a closed tab can never feed a live window
-  # another session's file. (Cross-*restart* reuse is handled by _sweep_stale.)
-  ```
+  36, 39, strictly increasing). So within one kitty run a closed tab can never
+  feed a live window another session's state file; cross-*restart* reuse is
+  handled by `_sweep_stale()`.
 
 ## Known bug: intermittent wrong icon
 
@@ -105,11 +101,14 @@ modes**:
    - **Permission-gated tool running after you approve** — **known, accepted
      limitation (2026-07-21)**, see "Permission-gated tool shows ⏸" below.
 
-Open questions the docs don't answer (hence the instrumentation):
+Open questions (answered while chasing the bug via temporary logging, since
+removed):
 
 - Does `Stop` fire on ESC interrupt? (Empirically: seems **not** — this is the
   remaining cause of stuck `working` #1, still unfixed.)
 - Do a subagent's `PreToolUse`/`PostToolUse` fire the **parent window's** hooks?
+  (Observed: subagent hooks never carried `agent_*` fields, i.e. no stray parent
+  writes were seen.)
 - ~~Does the statusline tick as a heartbeat while working?~~ **Answered: no.** Log
   analysis showed **zero** statusline beats during a 3-min silent `Bash` and none
   during a 26-min idle. It fires only at activity boundaries. `working` is
@@ -132,9 +131,9 @@ Confirmed in the log: a `Notification` 7s into a 3-min `Bash` held ⏸ from
 dropped (unknown messages still default to `waiting` so no genuine "needs you" is
 lost). Normal turn-end is unaffected — it comes from the `Stop` hook (now the
 `stop`/⏹ state; the `⏸`/`waiting` glyph in this section predates that split). The
-message-matching is deliberately loose (`*permission*` / `*input*`); the debug
-log now records `msg=` so the patterns can be verified/tuned against real
-notifications.
+message-matching is deliberately loose (`*permission*` / `*input*`); real
+observed messages were `"Claude needs your permission[ to use X]"` (→`waiting`)
+and `"Claude is waiting for your input"` (→`ignore`).
 
 **Not** the cause: window-id reuse on tab close. Within one kitty run, window ids
 are monotonic and never recycled (ids observed: 2, 4, 36, 39 — strictly
@@ -159,10 +158,10 @@ tells kitty to repaint until you move the mouse / press a key.
 Confirmed 2026-07-21 by comparing the debug log (file write times, always
 sub-second) against what was on screen: the file was correct; the glyph lagged.
 
-**Fix:** `tab_bar.py` registers an `add_timer` callback (`_poll_redraw`, 2s) that
-fingerprints the state dir (numeric files only — logging churn is skipped) and
+**Fix:** `tab_bar.py` registers an `add_timer` callback (`_poll_redraw`, 1s) that
+fingerprints the state dir (numeric files only — ignores any non-state files) and
 calls `mark_tab_bar_dirty()` **only when a state file's mtime actually changed**.
-So a glyph now tracks its file within ~2s even on an untouched tab. Cost is
+So a glyph now tracks its file within ~1s even on an untouched tab. Cost is
 negligible: when nothing changed (idle sessions, or no Claude open — the timer
 lives in kitty, not Claude) a tick is just one `listdir` + a few `stat`s and
 forces **no** repaint; kitty also skips the repaint for occluded windows. This is
@@ -194,58 +193,22 @@ genuinely says `waiting`); if anything it makes the transient show more
 faithfully. A real fix would need a Claude Code hook that fires on permission
 grant / tool-execution start, which doesn't exist today.
 
-## Diagnostic instrumentation (temporary)
+## Re-instrumenting if a new wrong-icon report appears
 
-Opt-in logging, gated by a flag file so it costs nothing when off:
-
-```sh
-# Enable
-mkdir -p /tmp/claude-kitty-state && touch /tmp/claude-kitty-state/.debug
-# Disable (no chezmoi apply needed)
-rm /tmp/claude-kitty-state/.debug
-```
-
-When the flag exists:
-
-- `tab-state.sh` appends to `/tmp/claude-kitty-state/debug.log` — hi-res
-  timestamp, pid, window id, the state written, and the real `hook_event_name` /
-  `tool_name` / `agent_type`+`agent_id` parsed from the hook JSON on stdin.
-- `statusline.sh` appends to `/tmp/claude-kitty-state/statusline.log` — hi-res
-  timestamp + window id, i.e. statusline invocation cadence.
-
-Both logging blocks are clearly fenced in their scripts and are **meant to be
-removed** once the bug is fixed. If you're reading this after the fix shipped and
-those blocks are still there, delete them (and this section).
-
-### Analysing a report
-
-When an icon is wrong, note the window and what it showed vs reality, then
-reconstruct the merged per-window timeline (state writes interleaved with
-statusline beats) and compare against the current on-disk state. Ad-hoc:
-
-```sh
-# merged timeline for one window, oldest first
-{ sed 's/$/ KIND=state/' /tmp/claude-kitty-state/debug.log
-  sed 's/$/ event=beat KIND=beat/' /tmp/claude-kitty-state/statusline.log; } \
-  | sort -n | grep 'wid=<ID>'
-# what the renderer currently sees
-cat /tmp/claude-kitty-state/<ID>
-```
-
-What to look for: the **last state write** for the window vs. what the tab
-actually showed. A final `wrote=working` with no following `Stop` → stuck-working
-(interrupt — see #1). A `wrote=waiting event=Notification` landing between a
-`PreToolUse` and its matching `PostToolUse` → the mid-tool false-⏸ that was fixed
-(should no longer occur; if it does, check the `msg=` field — an idle nudge
-should now resolve to `ignore`, only `*permission*` writes `waiting`).
-
-Note: statusline *silence* is **not** a signal (see Gotchas) — it is silent
-during long tools and during idle alike. Read the state writes, not the beats.
+The temporary opt-in logging (a `.debug` flag file gating append-logging in
+`tab-state.sh` and `statusline.sh`) was **removed 2026-07-21** once the renderer
+fix landed. If a new intermittent case shows up and you need a per-window
+timeline again, the pattern that worked: have `tab-state.sh` append
+`time / pid / wid / resolved-state / hook_event_name / tool_name / message` to a
+log under `STATE_DIR` behind an `[ -f "$dir/.debug" ]` guard, then reconstruct
+the timeline with `grep 'wid=<ID>'` and compare the **last state write** against
+what the tab showed. Statusline *silence* is not a signal (it's silent during
+long tools and idle alike) — read the state writes, not any beat log.
 
 ## Fix direction
 
 - **Renderer lag (the dominant cause): DONE (2026-07-21)** — `tab_bar.py` now
-  polls on a 2s timer and repaints only on a real state change, so glyphs track
+  polls on a 1s timer and repaints only on a real state change, so glyphs track
   their files on untouched tabs. **Needs a kitty restart to activate.**
 - **Stuck `waiting` — idle nudge: DONE (2026-07-17)** — `Notification` no longer
   writes `waiting` for its idle nudge (see "Root cause of stuck `waiting`").
