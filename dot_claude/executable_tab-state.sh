@@ -9,9 +9,11 @@
 # without a controlling tty (writing to /dev/tty fails), and this needs no
 # kitty remote control. Always exits 0 so a hook can never surface an error.
 #
-# Usage: tab-state.sh working|waiting|idle|notify
+# Usage: tab-state.sh working|waiting|stop|idle|notify
 #
-#   working|waiting|idle -> write the state verbatim (waiting) / remove file (idle)
+#   working|waiting|stop -> write the state verbatim (glyph via ~/.config/kitty/tab_bar.py:
+#                           working=▸ / waiting=⏸ needs your input / stop=⏹ turn ended)
+#   idle                 -> remove the file (no glyph)
 #   notify               -> a Claude "Notification" hook fired; resolve it (see below)
 #
 # Why `notify` is special: Claude fires the Notification hook for TWO unrelated
@@ -80,7 +82,7 @@ fi
 
 case "$state" in
     idle) rm -f "$file" 2>/dev/null ;;
-    working | waiting) printf '%s' "$state" >"$file" 2>/dev/null ;;
+    working | waiting | stop) printf '%s' "$state" >"$file" 2>/dev/null ;;
     # ignore -> leave the current state file untouched
 esac
 
