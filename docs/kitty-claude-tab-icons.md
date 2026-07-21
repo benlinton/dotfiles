@@ -76,18 +76,31 @@ Things that cost real debugging time — read these before re-deriving them:
 
 ## Known bug: intermittent wrong icon
 
-Reported 2026-07-17. Icons are *usually* right but occasionally stick. Because
-the state file is last-writer-wins with **no ordering or ground-truth check**, a
-missed or out-of-order write persists until the next event happens to correct it
-(it self-heals on the next turn). There are **two opposite failure modes**:
+Reported 2026-07-17. Icons are *usually* right but occasionally stick.
+
+> **Dominant cause found 2026-07-21: renderer lag, not the writer.** Most
+> "wrong icon that heals when you touch it" reports are the *renderer* — the
+> state **file** is correct but the glyph hadn't repainted. Fixed with a redraw
+> timer; see "Root cause: renderer never repainted" below. Read that first. The
+> writer-side failure modes below are real but secondary.
+
+Because the state file is last-writer-wins with **no ordering or ground-truth
+check**, a missed or out-of-order write can also persist until the next event
+corrects it (it self-heals on the next turn). The **two writer-side failure
+modes**:
 
 1. **Stuck `working`** (▸ play shown while the session is actually stopped). The
-   corrective `waiting` write never landed. Prime suspect: **interrupts** — ESC
-   aborts a turn and the `Stop` hook does not reliably fire, so nothing writes
-   `waiting`.
+   corrective `waiting` write never landed. Suspect: **interrupts** — ESC aborts
+   a turn and the `Stop` hook does not reliably fire. NOTE (2026-07-21): most
+   reports of this were actually renderer lag — the `waiting` file *was* written
+   on a normal `Stop`, the glyph just never repainted. True ESC-with-no-`Stop` is
+   a smaller residual.
 2. **Stuck `waiting`** (⏸ pause shown while the session is actually running).
-   **Root cause found (2026-07-17) and fixed** — see below. Was mis-attributed to
-   subagents; the real trigger is `Notification`'s idle nudge firing mid-tool.
+   Two distinct triggers:
+   - `Notification`'s idle nudge firing mid-tool — **found & fixed 2026-07-17**,
+     see "Root cause of stuck `waiting`" below.
+   - **Permission-gated tool running after you approve** — **known, accepted
+     limitation (2026-07-21)**, see "Permission-gated tool shows ⏸" below.
 
 Open questions the docs don't answer (hence the instrumentation):
 
@@ -124,6 +137,58 @@ are monotonic and never recycled (ids observed: 2, 4, 36, 39 — strictly
 increasing), and each window's hooks/renderer agree on its id. Closing a tab can
 orphan a state file, but no live window ever reads it. Cross-*restart* reuse is
 handled by `_sweep_stale()`.
+
+### Root cause: renderer never repainted (found & fixed 2026-07-21)
+
+The dominant "wrong icon" was **not** a bad state file — it was the file being
+right while the **glyph** was stale. kitty repaints the tab bar only on its own
+triggers (focus change, keypress, focused-window output, bell, title change). A
+state file changing on disk is **not** one of them. So when a session transitions
+`working`↔`waiting` on a tab you're not interacting with — a background tab, or
+the tab that just finished its turn and went quiet — the glyph keeps showing the
+previous state until some *unrelated* event repaints the bar. That is exactly the
+"heals when you touch it" symptom, and it's **worse with more tabs** (background
+tabs essentially never self-repaint). It also explains why a *normal* `Stop`
+(non-ESC) leaves a stale ▸: the `waiting` file is written instantly, but nothing
+tells kitty to repaint until you move the mouse / press a key.
+
+Confirmed 2026-07-21 by comparing the debug log (file write times, always
+sub-second) against what was on screen: the file was correct; the glyph lagged.
+
+**Fix:** `tab_bar.py` registers an `add_timer` callback (`_poll_redraw`, 2s) that
+fingerprints the state dir (numeric files only — logging churn is skipped) and
+calls `mark_tab_bar_dirty()` **only when a state file's mtime actually changed**.
+So a glyph now tracks its file within ~2s even on an untouched tab. Cost is
+negligible: when nothing changed (idle sessions, or no Claude open — the timer
+lives in kitty, not Claude) a tick is just one `listdir` + a few `stat`s and
+forces **no** repaint; kitty also skips the repaint for occluded windows. This is
+a *renderer* change only — state stays 100% hook-driven, so the earlier "no
+heartbeat, so no TTL reconciler" conclusion is untouched (that was about
+inventing *writer* state; this only re-reads files the renderer already reads).
+
+> **Activation requires a full kitty restart.** kitty imports `tab_bar.py` once
+> at startup; `load_config_file` does **not** re-import it (see `kitty.conf` note:
+> "when changing … the tab bar, a full restart is needed"). The fix is live in
+> the source/`$HOME` copy but a running kitty won't use it until relaunched.
+
+### Permission-gated tool shows ⏸ (accepted limitation, 2026-07-21)
+
+When a tool needs a permission prompt, the hook order is `PreToolUse` (→working)
+→ `Notification` "needs your permission" (→waiting) → *you approve* → tool runs →
+`PostToolUse` (→working). **No hook fires between approval and tool completion**
+(`PreToolUse` already ran *before* the prompt), so from the moment you approve
+until the tool finishes, the file still says `waiting` and the tab shows ⏸ **while
+it is actually running**. Window of wrongness = the tool's post-approval
+duration; it self-heals at `PostToolUse`. Observed as "tab took 3–5s to turn
+green after I approved" (the tool ran 3–5s under a stale ⏸).
+
+**Decision: accept it.** It's bounded and self-healing, prompts are relatively
+rare (common commands are allow-listed), and the ⏸-at-a-permission-prompt cue is
+genuinely useful (it pulls you back to a blocked tab) — so we keep it rather than
+force permission prompts green. The redraw timer does **not** fix this (the file
+genuinely says `waiting`); if anything it makes the transient show more
+faithfully. A real fix would need a Claude Code hook that fires on permission
+grant / tool-execution start, which doesn't exist today.
 
 ## Diagnostic instrumentation (temporary)
 
@@ -175,11 +240,17 @@ during long tools and during idle alike. Read the state writes, not the beats.
 
 ## Fix direction
 
-- **Stuck `waiting` (#2): DONE** — `Notification` no longer writes `waiting` for
-  its idle nudge (see "Root cause of stuck `waiting`" above).
-- **Stuck `working` (#1): still open.** On ESC interrupt no hook fires, so the
-  `working` file is never corrected; it self-heals only when the next turn ends
-  (`Stop`). A freshness/TTL reconciler is **not** viable — there's no continuous
-  working heartbeat (see the answered open question), so a TTL can't tell a
-  long-running tool from an aborted turn. Needs a real interrupt-time signal
+- **Renderer lag (the dominant cause): DONE (2026-07-21)** — `tab_bar.py` now
+  polls on a 2s timer and repaints only on a real state change, so glyphs track
+  their files on untouched tabs. **Needs a kitty restart to activate.**
+- **Stuck `waiting` — idle nudge: DONE (2026-07-17)** — `Notification` no longer
+  writes `waiting` for its idle nudge (see "Root cause of stuck `waiting`").
+- **Stuck `waiting` — permission-gated tool: WON'T FIX (accepted)** — no hook
+  fires between approval and tool completion; bounded and self-healing (see
+  "Permission-gated tool shows ⏸").
+- **Stuck `working` — true ESC interrupt: residual, open.** With the renderer
+  fixed, this shrinks to the genuine case where ESC aborts a turn and no `Stop`
+  fires, so `working` is never corrected until the next turn ends. A freshness/TTL
+  reconciler is still **not** viable — no continuous working heartbeat, so a TTL
+  can't tell a long tool from an aborted turn. Needs a real interrupt-time signal
   (does Claude Code expose one?) before it's worth touching.
