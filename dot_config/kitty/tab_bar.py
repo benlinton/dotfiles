@@ -19,6 +19,7 @@
 import os
 import time
 
+from kitty.fast_data_types import add_timer
 from kitty.tab_bar import as_rgb, draw_tab_with_powerline, get_boss
 
 STATE_DIR = "/tmp/claude-kitty-state"
@@ -83,6 +84,73 @@ def _states_for_tab(tab_id):
         except OSError:
             pass
     return found
+
+
+# --- periodic redraw so glyphs track their state files -------------------
+# kitty only repaints the tab bar on its own triggers (focus change, keypress,
+# focused-window output, bell, title change). A state file changing on disk is
+# NOT one of them, so a tab that transitions working<->waiting while you are not
+# interacting with it (a background tab, or the tab that just finished a turn)
+# keeps showing its previous glyph until some unrelated event happens to repaint
+# -- the "wrong icon that heals when you touch it" bug. We fix it by polling the
+# state dir on a timer and marking the tab bar dirty ONLY when a state file
+# actually changed. When nothing changed (idle sessions, or no Claude open at
+# all) a tick is just one listdir + a few stats and forces no repaint, so the
+# cost is negligible; kitty also skips the repaint entirely for occluded windows.
+_REDRAW_INTERVAL = 2.0  # seconds; how quickly a glyph catches up to its file
+_last_sig = None
+
+
+def _state_signature():
+    # Cheap fingerprint of the state dir: (window-id, mtime_ns) per state file.
+    # Only numeric names are state files -- skip debug.log/statusline.log/.debug
+    # so diagnostic logging churn never triggers a redraw.
+    try:
+        names = os.listdir(STATE_DIR)
+    except OSError:
+        return ()
+    sig = []
+    for name in names:
+        if not name.isdigit():
+            continue
+        try:
+            sig.append((name, os.stat(os.path.join(STATE_DIR, name)).st_mtime_ns))
+        except OSError:
+            pass
+    sig.sort()
+    return tuple(sig)
+
+
+def _poll_redraw(timer_id):
+    global _last_sig
+    sig = _state_signature()
+    if sig == _last_sig:
+        return  # nothing changed -> no repaint (the common, near-free case)
+    _last_sig = sig
+    boss = get_boss()
+    if boss is None:
+        return
+    try:
+        managers = list(boss.os_window_map.values())
+    except Exception:
+        tm = getattr(boss, "active_tab_manager", None)
+        managers = [tm] if tm is not None else []
+    for tm in managers:
+        try:
+            tm.mark_tab_bar_dirty()
+        except Exception:
+            pass
+
+
+try:
+    # seed the signature with the state at import so the first tick only fires on
+    # a real change (the import-time render already reflects the current files).
+    _last_sig = _state_signature()
+    add_timer(_poll_redraw, _REDRAW_INTERVAL, True)
+except Exception:
+    # if the timer can't be registered, fall back to kitty's native repaint
+    # triggers -- degraded (laggy glyphs) but never broken.
+    pass
 
 
 def draw_tab(
