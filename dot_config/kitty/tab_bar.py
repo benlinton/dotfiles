@@ -100,14 +100,15 @@ def _states_for_tab(tab_id):
 # actually changed. When nothing changed (idle sessions, or no Claude open at
 # all) a tick is just one listdir + a few stats and forces no repaint, so the
 # cost is negligible; kitty also skips the repaint entirely for occluded windows.
-_REDRAW_INTERVAL = 2.0  # seconds; how quickly a glyph catches up to its file
+_REDRAW_INTERVAL = 1.0  # seconds; worst-case lag before a glyph catches up to its
+                        # file. Cheaper interval would only add microsecond idle
+                        # wakeups (repaints happen on change, not per tick).
 _last_sig = None
 
 
 def _state_signature():
     # Cheap fingerprint of the state dir: (window-id, mtime_ns) per state file.
-    # Only numeric names are state files -- skip debug.log/statusline.log/.debug
-    # so diagnostic logging churn never triggers a redraw.
+    # Only numeric names are state files -- ignore any other files in the dir.
     try:
         names = os.listdir(STATE_DIR)
     except OSError:
