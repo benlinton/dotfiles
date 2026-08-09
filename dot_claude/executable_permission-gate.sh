@@ -301,6 +301,53 @@ rm_tokens_scoped() {
   return 0
 }
 
+# --- Is this URL fetching something inert? ------------------------------------
+#
+# A downloaded file is harmless until something runs it, and condition 5 already
+# keeps every interpreter, package manager, build tool and archive extractor off
+# the allowlist — `sh /tmp/x`, `python3 /tmp/x`, `npm install` and `tar -xf` all
+# prompt. So this is NOT the boundary that stops malicious downloads; that one
+# is, and it holds regardless of file type.
+#
+# What this adds is visibility. `curl https://…/install.sh -o /tmp/x` is worth
+# seeing even though the follow-up would prompt anyway, because fetching an
+# executable is a statement of intent. An allowlist of inert types, mirroring
+# conditions 5 and 6: anything unrecognized merely falls through to tier 2's
+# existing curl prompt.
+#
+# BE HONEST ABOUT WHAT THIS IS: the extension describes what was REQUESTED, not
+# what the server sends. `https://evil.example/cat.jpg` may return a script and
+# would pass. It is a speed bump against the careless case, not a control
+# against an adversary — do not let it justify loosening anything else. The real
+# control over what curl may reach is the sandbox's network allowlist.
+url_is_inert() {
+  u=${1%%#*}      # drop fragment
+  u=${u%%\?*}     # drop query string — it can hide the real extension
+  u=${u##*/}      # last path segment
+  case "$u" in
+    *.*) ;;
+    *) return 1 ;;  # no extension at all: unknown, so ask
+  esac
+  case "$(printf '%s' "${u##*.}" | tr '[:upper:]' '[:lower:]')" in
+    pdf|html|htm|txt|text|md|json|csv|tsv|xml|yaml|yml|log|rtf) return 0 ;;
+    png|jpg|jpeg|gif|webp|bmp|ico|svg|avif|tiff) return 0 ;;
+    mp4|webm|mov|mkv|mp3|wav|ogg|m4a|flac) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# Every URL in the command fetches an inert type. Vacuously true when there is
+# no URL, so commands that touch no network are unaffected.
+urls_inert() {
+  for raw in $cmd; do
+    clean_tok "$raw"
+    case "$tok" in
+      http://*|https://*) url_is_inert "$tok" || return 1 ;;
+    esac
+  done
+  return 0
+}
+
 # --- File tools (Read / Write / Edit) -----------------------------------------
 # The native Read(/tmp/**) and Write(/tmp/**) allow rules in settings.json match
 # the path as a STRING, so a `/tmp/x` that symlinks to ~/.zshrc satisfies them
@@ -334,9 +381,10 @@ cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // ""' 2>/dev/null)
 #   4. no other gate already stops this command                 GATED_CMD
 #   5. every command word is one we run unprompted              cmd_words_safe
 #   6. if it names rm, every token is accounted for             rm_tokens_scoped
+#   7. every URL it fetches names an inert file type            urls_inert
 #
 # Failing 2 is different from failing the rest: an unresolvable temp path is a
-# positive danger signal, so it ASKS. Failing 3-6 only means "no opinion" — the
+# positive danger signal, so it ASKS. Failing 3-7 only means "no opinion" — the
 # command falls through to tier 1, tier 2 and the native rules, exactly as if
 # tier 0 did not exist.
 if has "$TMP_WORD"; then
@@ -345,7 +393,7 @@ if has "$TMP_WORD"; then
   # `echo x > /tmp/link` straight into $HOME with no prompt.
   tmp_paths_resolve || ask 'Temp-looking path resolves outside /tmp'
 
-  if ! has "$GATED_CMD" && tmp_scoped && cmd_words_safe; then
+  if ! has "$GATED_CMD" && tmp_scoped && cmd_words_safe && urls_inert; then
     if ! has "$RM_ANY"; then
       allow 'Temp-scoped command, never gated'
     elif rm_tokens_scoped; then
