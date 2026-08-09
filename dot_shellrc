@@ -93,25 +93,29 @@ reload() {
 }
 
 # ----------------------------------------------------------------------------
-# OPTIONAL: PATH (shell-agnostic)
-# ----------------------------------------------------------------------------
-# Add $HOME/.local/bin to front of PATH (if exists)
-test -d "$HOME/.local/bin" && export PATH="$HOME/.local/bin:$PATH"
-
-# ----------------------------------------------------------------------------
 # OPTIONAL: Homebrew (shell-agnostic)
 # ----------------------------------------------------------------------------
-# /etc/paths.d/homebrew is only applied by path_helper, which runs for LOGIN
-# shells. Non-login shells — scripts, editor tasks, agent tool calls — miss
-# /opt/homebrew/bin entirely and silently fall back to system binaries, so
-# `git` becomes Apple's rather than Homebrew's and `go` is not found at all.
-# Run unconditionally. An earlier version skipped this when `brew` was already
-# findable, which defeated the point: path_helper puts /opt/homebrew/bin LAST,
-# after /usr/bin, so brew resolves fine while `git` still finds Apple's. The
-# problem is ordering, not presence — and a duplicate PATH entry is harmless.
-if [ -x /opt/homebrew/bin/brew ]; then
-  eval "$(/opt/homebrew/bin/brew shellenv)"
+# /etc/paths.d/homebrew puts /opt/homebrew/bin on PATH, but path_helper APPENDS
+# it — after /usr/bin — so `git` resolved to Apple's 2.50.1 instead of
+# Homebrew's 2.53.0. The problem is ordering, not presence: brew itself was
+# always findable. Prepending is the whole fix.
+#
+# `brew shellenv` would also do this, but it costs ~10ms and two subprocesses on
+# every shell start, and the other four things it sets are unused here: nothing
+# runs compinit (so its zsh `fpath` line feeds nothing), and nothing reads
+# HOMEBREW_PREFIX, MANPATH or INFOPATH. Re-check that before switching back.
+if [ -d /opt/homebrew/bin ]; then
+  export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
 fi
+
+# ----------------------------------------------------------------------------
+# OPTIONAL: PATH (shell-agnostic)
+# ----------------------------------------------------------------------------
+# Add $HOME/.local/bin to front of PATH (if exists). Deliberately AFTER the
+# Homebrew block so ~/.local/bin still wins, as it did when path_helper put
+# Homebrew last — putting it first would silently change which binary runs for
+# anything installed in both places.
+test -d "$HOME/.local/bin" && export PATH="$HOME/.local/bin:$PATH"
 
 # ----------------------------------------------------------------------------
 # OPTIONAL: pyenv (shell-agnostic)
