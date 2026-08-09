@@ -199,12 +199,27 @@ tmp_paths_resolve() {
 # `user@host:path` is a remote write, so neither is listed.
 tmp_scoped() {
   case "$cmd" in
-    *'..'*|*'$('*|*'`'*) return 1 ;;
+    # `$` covers `$(...)` and plain `$VAR` alike. A bare `$HOME` has no slash,
+    # so it does not read as path-like and would sail through as a harmless
+    # word — `cd /tmp/x && chmod -R 777 $HOME` was verified allowed. Nothing
+    # here can know what a variable holds, which is the same reason `..` and
+    # command substitution are refused.
+    *'..'*|*'$'*|*'`'*) return 1 ;;
   esac
   for raw in $cmd; do
     clean_tok "$raw"
     case "$tok" in
-      -*) continue ;;              # flag
+      -*)
+        # A flag may carry its path ATTACHED: `-o/etc/x`, `--out=/etc/x`,
+        # `-d@/etc/passwd`. Skipping every `-*` token wholesale let that path
+        # escape unexamined, which is how `curl … -o$HOME/.zshenv` earned an
+        # allow while the spaced form `-o $HOME/.zshenv` was correctly stopped.
+        # Re-anchor on the first `/` or `~` and judge what follows as a path.
+        case "$tok" in
+          *[/~]*) tok=${tok#"${tok%%[/~]*}"} ;;
+          *) continue ;;           # a real flag, no path inside it
+        esac
+        ;;
       http://*|https://*) continue ;;  # URL, not a filesystem path
       */*|'~'*) ;;                 # path-like, so it has to be a temp path
       *) continue ;;               # bare word: rm, &&, echo, ...

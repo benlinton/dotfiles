@@ -4,3 +4,4 @@ scripts/
 .gitignore
 CLAUDE.md
 README.md
+tests/

@@ -285,6 +285,22 @@ Never `chezmoi apply --force` over a drifted live file — it discards live chan
 
 ## Verify after any change
 
+**Run the test suite first — it is the cheapest check and the only one that
+covers tier 0's six conditions:**
+
+```bash
+sh tests/permission-gate-test.sh    # exits non-zero on any failure
+```
+
+It tests the source copy, so run it *before* `chezmoi apply`. Most of its cases
+are laundering attempts — a destructive command carrying an incidental `/tmp`
+mention — because tier 0's allow outranks native `ask`, which makes a false
+allow the failure mode that silently disarms everything else. Add a case for
+every hole you close; several conditions exist only because a specific string
+got through, and the test is what stops it coming back.
+
+Then the manual checks:
+
 ```bash
 # 1. settings.json is still valid JSON
 jq . ~/.claude/settings.json >/dev/null && echo OK
