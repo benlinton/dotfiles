@@ -104,6 +104,10 @@ reload() {
 # every shell start, and the other four things it sets are unused here: nothing
 # runs compinit (so its zsh `fpath` line feeds nothing), and nothing reads
 # HOMEBREW_PREFIX, MANPATH or INFOPATH. Re-check that before switching back.
+#
+# Placed above the $HOME/.local/bin block on purpose, so that block still gets
+# the front of PATH — same as when path_helper appended Homebrew last. Keep this
+# block first if you add more PATH entries below it.
 if [ -d /opt/homebrew/bin ]; then
   export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
 fi
@@ -111,10 +115,7 @@ fi
 # ----------------------------------------------------------------------------
 # OPTIONAL: PATH (shell-agnostic)
 # ----------------------------------------------------------------------------
-# Add $HOME/.local/bin to front of PATH (if exists). Deliberately AFTER the
-# Homebrew block so ~/.local/bin still wins, as it did when path_helper put
-# Homebrew last — putting it first would silently change which binary runs for
-# anything installed in both places.
+# Add $HOME/.local/bin to front of PATH (if exists)
 test -d "$HOME/.local/bin" && export PATH="$HOME/.local/bin:$PATH"
 
 # ----------------------------------------------------------------------------
