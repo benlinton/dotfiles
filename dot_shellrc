@@ -93,6 +93,27 @@ reload() {
 }
 
 # ----------------------------------------------------------------------------
+# OPTIONAL: Homebrew (shell-agnostic)
+# ----------------------------------------------------------------------------
+# /etc/paths.d/homebrew puts /opt/homebrew/bin on PATH, but path_helper APPENDS
+# it — after /usr/bin — so `git` resolved to Apple's 2.50.1 instead of
+# Homebrew's 2.53.0. The problem is ordering, not presence: brew itself was
+# always findable. Prepending is the whole fix.
+#
+# `brew shellenv` would also do this, but it costs ~10ms and two subprocesses on
+# every shell start, and the other four things it sets are unused here: nothing
+# runs compinit (so its zsh `fpath` line feeds nothing), and nothing reads
+# HOMEBREW_PREFIX, MANPATH or INFOPATH. Re-check that before switching back.
+#
+# Placed above the $HOME/.local/bin block on purpose, so that block stays AHEAD
+# of Homebrew — the order it had when path_helper appended Homebrew last. It is
+# not the front of PATH overall (pyenv, fnm and bun all prepend further down);
+# the only invariant being preserved here is .local/bin > /opt/homebrew/bin.
+if [ -d /opt/homebrew/bin ]; then
+  export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+fi
+
+# ----------------------------------------------------------------------------
 # OPTIONAL: PATH (shell-agnostic)
 # ----------------------------------------------------------------------------
 # Add $HOME/.local/bin to front of PATH (if exists)
@@ -123,6 +144,16 @@ if [ -s "/opt/homebrew/opt/nvm/nvm.sh" ]; then
 elif [ -s "/usr/local/opt/nvm/nvm.sh" ]; then
   export NVM_DIR="$HOME/.nvm"
   \. "/usr/local/opt/nvm/nvm.sh"
+fi
+
+# ----------------------------------------------------------------------------
+# OPTIONAL: Go (shell-agnostic)
+# ----------------------------------------------------------------------------
+# Where `go install` puts binaries — goreleaser, golangci-lint, and anything
+# else fetched as a tool rather than a dependency. GOPATH is hardcoded rather
+# than read via `go env` to avoid a subprocess on every shell start.
+if [ -d "$HOME/go/bin" ]; then
+  export PATH="$HOME/go/bin:$PATH"
 fi
 
 # ----------------------------------------------------------------------------
