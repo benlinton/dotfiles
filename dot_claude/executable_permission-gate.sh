@@ -77,6 +77,8 @@ RM_ANY='(^|[^[:alnum:]_])(/bin/|/usr/bin/)?rm([[:space:]]|$)'
 # unattended. That is the accepted cost — data already sitting in a scratchpad.
 # `wget` stays gated, since curl covers the workflow and one door is enough.
 GATED_CMD='(^|[^[:alnum:]_./-])(ssh|sudo|wget|git)([[:space:]]|$)'
+# `curl` as a command word — the upload check below applies only to curl.
+CURL_WORD='(^|[^[:alnum:]_./-])curl([[:space:]]|$)'
 
 has() { printf '%s' "$cmd" | grep -Eq "$1"; }
 
@@ -348,6 +350,37 @@ urls_inert() {
   return 0
 }
 
+# Does this curl SEND a body rather than just fetch one? `-T`/`--upload-file`
+# uploads a file and `-d @file` / `-F file=@…` post one, which is the
+# exfiltration path condition 4 conceded: everything stays inside tmp and the
+# data still leaves the machine. Condition 7 narrowed it by accident, since
+# upload endpoints rarely end in an inert extension; this closes it on purpose.
+#
+# Only consulted for commands naming curl. The letters overlap with ordinary
+# flags elsewhere — `du -d 1`, `sort -d`, `find -d` are all harmless — so
+# applying it generally would prompt on them for no reason.
+#
+# Short options bundle (`curl -sT file url`), so a single-dash token is examined
+# letter by letter. Case is load-bearing: `-D` dumps headers but `-d` sends a
+# body, `-f` fails silently but `-F` posts a form. An attached path is stripped
+# first so `-o/tmp/docs.pdf` isn't misread as carrying a `-d`.
+curl_uploads() {
+  has "$CURL_WORD" || return 1
+  for raw in $cmd; do
+    clean_tok "$raw"
+    case "$tok" in
+      --data*|--form*|--upload-file*) return 0 ;;
+      --*) continue ;;   # some other long option
+      -?*) ;;            # short option, possibly a bundle
+      *) continue ;;     # not a flag
+    esac
+    case "${tok%%[/~]*}" in
+      *T*|*d*|*F*) return 0 ;;
+    esac
+  done
+  return 1
+}
+
 # --- File tools (Read / Write / Edit) -----------------------------------------
 # The native Read(/tmp/**) and Write(/tmp/**) allow rules in settings.json match
 # the path as a STRING, so a `/tmp/x` that symlinks to ~/.zshrc satisfies them
@@ -382,9 +415,10 @@ cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // ""' 2>/dev/null)
 #   5. every command word is one we run unprompted              cmd_words_safe
 #   6. if it names rm, every token is accounted for             rm_tokens_scoped
 #   7. every URL it fetches names an inert file type            urls_inert
+#   8. it fetches rather than sends                             curl_uploads
 #
 # Failing 2 is different from failing the rest: an unresolvable temp path is a
-# positive danger signal, so it ASKS. Failing 3-7 only means "no opinion" — the
+# positive danger signal, so it ASKS. Failing 3-8 only means "no opinion" — the
 # command falls through to tier 1, tier 2 and the native rules, exactly as if
 # tier 0 did not exist.
 if has "$TMP_WORD"; then
@@ -393,7 +427,8 @@ if has "$TMP_WORD"; then
   # `echo x > /tmp/link` straight into $HOME with no prompt.
   tmp_paths_resolve || ask 'Temp-looking path resolves outside /tmp'
 
-  if ! has "$GATED_CMD" && tmp_scoped && cmd_words_safe && urls_inert; then
+  if ! has "$GATED_CMD" && tmp_scoped && cmd_words_safe && urls_inert &&
+     ! curl_uploads; then
     if ! has "$RM_ANY"; then
       allow 'Temp-scoped command, never gated'
     elif rm_tokens_scoped; then
