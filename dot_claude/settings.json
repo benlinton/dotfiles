@@ -17,7 +17,11 @@
       "Bash(echo *)",
       "Bash(pwd)",
       "Bash(which *)",
-      "Bash(whoami)"
+      "Bash(whoami)",
+      "Read(//tmp/**)",
+      "Read(//private/tmp/**)",
+      "Edit(//tmp/**)",
+      "Edit(//private/tmp/**)"
     ],
     "deny": [
       "Read(.env)",
@@ -55,7 +59,7 @@
         ]
       },
       {
-        "matcher": "Bash",
+        "matcher": "Bash|Read|Write|Edit|MultiEdit|NotebookEdit",
         "hooks": [
           {
             "type": "command",
