@@ -17,7 +17,13 @@
       "Bash(echo *)",
       "Bash(pwd)",
       "Bash(which *)",
-      "Bash(whoami)"
+      "Bash(whoami)",
+      "Read(/tmp/**)",
+      "Read(/private/tmp/**)",
+      "Edit(/tmp/**)",
+      "Edit(/private/tmp/**)",
+      "Write(/tmp/**)",
+      "Write(/private/tmp/**)"
     ],
     "deny": [
       "Read(.env)",
@@ -55,7 +61,7 @@
         ]
       },
       {
-        "matcher": "Bash",
+        "matcher": "Bash|Read|Write|Edit|NotebookEdit",
         "hooks": [
           {
             "type": "command",
@@ -123,8 +129,8 @@
     "skill-creator@claude-plugins-official": true
   },
   "tui": "fullscreen",
-  "agentPushNotifEnabled": true,
+  "skipDangerousModePermissionPrompt": true,
   "remoteControlAtStartup": false,
-  "voiceEnabled": true,
-  "skipDangerousModePermissionPrompt": true
+  "agentPushNotifEnabled": true,
+  "voiceEnabled": true
 }

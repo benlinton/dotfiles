@@ -35,6 +35,7 @@ Mode behavior — this is the crux:
 | Layer | Fires in normal modes? | Fires in `bypassPermissions`? |
 |---|---|---|
 | native `deny` | yes | yes |
+| hook **tier 0** (allow, above everything) | yes | yes |
 | native `ask` | yes | **yes** |
 | hook **tier 1** (above the bypass short-circuit) | yes | **yes** |
 | hook **tier 2** (the `case` below the short-circuit) | yes | **no** |
@@ -47,7 +48,7 @@ except in bypass".
 
 ## The buckets — what each is for, and why
 
-There are five buckets a command can land in. They exist because two independent
+There are six buckets a command can land in. They exist because two independent
 questions have to be answered separately: **"how hard do we stop this?"**
 (deny/ask/allow) and **"does bypass mode get to skip the stop?"** (native vs. hook,
 tier-1 vs. tier-2). No single list can express both, which is why the hook exists
@@ -75,6 +76,120 @@ alongside the native rules.
   Pair it with a native `ask` backup so the guard survives the hook script going
   missing. Reach here only when the danger is severe enough to justify bypass-proof,
   compound-proof matching — otherwise native `ask` is simpler.
+
+- **hook tier-0 — "this is scratch space; never ask me about it."**
+  An escape hatch that runs *ahead of everything*, currently holding temp dirs
+  (`/tmp`, `/private/tmp`). It emits an explicit `permissionDecision: "allow"`
+  rather than exiting silently, and that distinction is the whole point: a silent
+  exit is "no opinion," which falls through to the native `ask` list, so
+  `rm -rf /tmp/x` would still prompt via `Bash(rm -r*)`. An explicit allow
+  outranks native `ask` (see precedence above) while still losing to native
+  `deny`. (Verified empirically — a `rm -rf` under `/tmp` runs with no prompt
+  despite `Bash(rm -r*)` sitting in the ask list. Don't take it on faith if you
+  upgrade; some published guidance claims hooks never bypass `ask`.)
+  Use this bucket only for locations where the blast radius is genuinely nil.
+
+  **The invariant: tier 0 never overrides another gate.** Because its allow
+  outranks native `ask`, the bar is that a command must be provably *confined* to
+  tmp — not merely that it *mentions* tmp. That distinction is the entire
+  difference between an exemption and a universal bypass: if a temp mention alone
+  were enough, `&& ls /tmp/x` would become a magic suffix that clears every other
+  rule, and `git push --force origin main && ls /tmp/x` is a force push, not
+  scratch work. The one carve-out is recursive `rm`, the case tier 0 exists for,
+  and it is admitted only under the strictest check of the six.
+
+  Six conditions. Each closes a different way back out of tmp:
+
+  1. **It names a temp path.** Pattern match, `TMP_WORD`.
+  2. **Every temp path it names really is in tmp.** Not a pattern match — this
+     one asks the filesystem, via `resolve_root()` + `under_tmp()`. See below.
+  3. **No path-like token points anywhere but tmp** (`tmp_scoped()`). Applied to
+     every candidate, not just deletions: a command's danger isn't announced by
+     its name, and `chmod`, `mv` and `tee` wreck `$HOME` as thoroughly as `rm`.
+     `..` and command substitution are refused outright here, since neither can
+     be resolved by inspection. A URL is path-like and so lands here too, which
+     is intended — it's one of the ways a "temp" command reaches the network.
+  4. **No other gate already stops this command** (`GATED_CMD`: `ssh`, `sudo`,
+     `curl`, `wget`, `git`). This is the invariant made mechanical. `git` is
+     listed whole rather than as `git push`, because `git clean -fdx` is just as
+     destructive and no git operation is ever really "about tmp."
+  5. **Every command word is one we'll run unprompted** (`cmd_words_safe()`).
+     Conditions 3 and 4 both reason about tokens that *look* like something —
+     a path, a known-dangerous name. A bare word looks like neither, so
+     `ls /tmp/x && npm publish` sails past both with nothing to object to. So the
+     verb of each pipeline segment must appear in a short allowlist. Operands
+     stay unrestricted — `echo hi > /tmp/x` has to keep working — but interpreters
+     and archive extractors stay off the list, because their damage isn't bounded
+     by the paths they name. Anything absent merely falls through to a prompt.
+  6. **If it names `rm`, every token is accounted for** (`rm_tokens_scoped()`):
+     a flag, an absolute temp path, or one of a few connectives — no bare words
+     at all. This is stricter than condition 3 because a delete has no partial
+     failure mode. `ls /tmp/x && rm -rf build` *passes* `tmp_scoped()`, since
+     `build` has no slash and so isn't path-like, and would recursively delete a
+     directory in the project's cwd. A trailing `/` (`rm -rf /tmp/link/` deletes
+     *through* a symlink) and a bare `/tmp` are refused here too. Note this
+     applies to every `rm`, not just recursive ones: `rm -f ~/.zshrc` is no less
+     final for lacking a `-r`.
+
+  Failing condition 2 is different in kind from failing the rest: an unresolvable
+  temp path is a positive danger signal, so it **asks**. Failing 3–6 only means
+  "no opinion" — the command falls through to tiers 1 and 2 and the native rules,
+  exactly as if tier 0 didn't exist.
+
+  Note what this costs: `curl` into a scratchpad now prompts outside bypass mode,
+  because condition 4 excludes it. That's deliberate. Downloading into `/tmp` is
+  harmless to the *filesystem*, but `curl` is tier-2 gated for network egress,
+  and tier 0 is not entitled to overrule that.
+
+  **Why condition 2 can't be a regex.** A path that reads like `/tmp/x` points
+  anywhere at all — `echo hi > /tmp/link` was verified overwriting a file in
+  `$HOME`. So the hook resolves the deepest *existing* ancestor with `realpath`
+  (a target that doesn't exist yet can't be a symlink; only the existing prefix
+  can) and requires the result under a temp root. Globs are judged by the
+  directory holding them, walking left until the glob is gone: `/tmp/link/*` is
+  safe only if `/tmp/link` is.
+
+  `under_tmp()` accepts **both** `/private/tmp` and `/tmp` because this file also
+  deploys to Linux and WSL. macOS resolves `/tmp` to `/private/tmp`; everywhere
+  else it resolves to itself. Accepting only the macOS form doesn't merely fail
+  to help on Linux — it inverts the whole exemption into prompting on *every*
+  temp path, since nothing would ever satisfy the check.
+
+  **Dangling symlinks are the sharp edge of "deepest existing ancestor."** `-e`
+  follows symlinks, so a broken link *looks* nonexistent and the walk climbs
+  straight past it to `/tmp`, reporting a temp path — while the shell still
+  creates the file at the link target. `resolve_root()` therefore stops on `-L`
+  as well as `-e`, handing the link itself to `realpath`, which fails on it, and
+  an empty result fails `under_tmp()`. Don't dismiss this as "it can only create
+  a file that didn't exist": `~/.zshenv` doesn't exist by default either, and
+  every shell sources it.
+
+  **A temp path that resolves out of tmp must `ask`, never just fall through.**
+  Falling through means "no opinion," which lands on the native allow list, and
+  `Bash(echo *)` will happily run `echo x > /tmp/link` into `$HOME` unprompted.
+  Declining to allow is not the same as denying.
+
+  This is why the hook also matches `Read`/`Write`/`Edit`, not just `Bash`: the
+  native `Write(/tmp/**)` allow rules match the path as a *string*, so a symlink
+  named `/tmp/x` satisfies them too. Same resolution check, same answer.
+
+  Remaining limits, accepted:
+
+  - **Relative targets always prompt.** `rm -rf build` and `rm -rf ./build` both
+    fall through, because the hook never sees the command's cwd and so cannot
+    tell scratch space from the project root. Conditions 5 and 6 turn that
+    blindness into a prompt rather than a guess.
+  - **Over-prompting on slash-bearing arguments that aren't paths.** `sed -i ""
+    s/a/b/ /tmp/x` falls through, since `tmp_scoped()` reads `s/a/b/` as a
+    non-temp path. Wrong for the right reason — it fails toward asking.
+  - **Time-of-check/time-of-use.** Resolution is a snapshot, so a symlink swapped
+    between the check and the command beats it. That one needs kernel
+    enforcement, i.e. the sandbox below.
+
+  When extending the command allowlist in condition 5, the test to apply is not
+  "is this command safe?" but "is this command's damage bounded by the paths it
+  names?" — because conditions 3 and 6 only constrain paths. `tar` fails that
+  test (`tar -xf /tmp/e.tar` extracts into the cwd), and so does any interpreter.
 
 - **hook tier-2 — "confirm normally, but trust me in bypass."**
   This is the bucket the whole setup was built for. These commands are risky enough
@@ -105,6 +220,7 @@ The dividing lines, stated as the two questions:
 | Always prompt every mode **and** catch compound / odd flags / be bypass-proof | hook **tier 1** (before the bypass short-circuit) — optionally a native `ask` as a backup if the hook script goes missing |
 | Prompt in normal modes, **silent under bypass** | hook **tier 2** (the `case "$cmd"` block) |
 | Always run silently | native `permissions.allow` |
+| Never prompt, **even over a native `ask`** (scratch dirs) | hook **tier 0** — must emit an explicit `allow`, not `exit 0` |
 
 ## Make the change
 
@@ -121,6 +237,13 @@ The dividing lines, stated as the two questions:
 To truly let a currently-gated command run silently in bypass you must relax **both**
 layers: move/remove it from the hook **and** delete any native `ask` rule for it —
 because native `ask` still fires in bypass. Touching only one leaves it prompting.
+
+The same trap applies in *every* mode, not just bypass, and it's why tier-0 exists:
+dropping a command from the hook only demotes it to "no opinion," and a surviving
+native `ask` then prompts anyway. Emitting an explicit `allow` from the hook is the
+one move that overrides a native `ask` without deleting it — which is how
+`rm -rf /tmp/x` runs silently while `Bash(rm -r*)` stays in place as the backup for
+every path that isn't scratch space.
 
 ## chezmoi: both files are managed — edit the source, not the live copy
 
@@ -162,3 +285,38 @@ output when it should stay silent. Back up first: `cp ~/.claude/settings.json{,.
 
 Note: the hook matches textually, so it can over-prompt on string literals like
 `echo "rm -rf /"`. That's intentional — it fails safe toward prompting.
+
+## The sandbox is the better tool for "stop asking me about scratch space"
+
+Everything above is text matching, which is inherently guessy: it can't resolve a
+symlink, can't know the cwd, can't see what `$(...)` expands to. Claude Code ships
+an OS-level alternative that can — `/sandbox`, using Seatbelt on macOS and
+bubblewrap on Linux. It confines Bash to a declared set of writable paths and
+network domains, and in **auto-allow mode** sandboxed commands run with no prompt
+at all, because the kernel boundary *is* the approval.
+
+Why it fits this use case specifically:
+
+- The session temp directory is writable inside the sandbox by default, alongside
+  the working directory, so scratch work needs no rules at all.
+- Even in auto-allow mode, `rm`/`rmdir` targeting `/`, `$HOME`, or other critical
+  paths **still** prompts — the guard is kept exactly where tier-0 wanted it
+  dropped, and enforced rather than pattern-matched.
+- Explicit `deny` rules are still respected.
+
+One interaction to know: content-scoped ask rules like `Bash(git push *)` and
+`Bash(rm -r*)` still force a prompt even for sandboxed commands. So the sandbox
+alone does *not* silence `rm -rf` in tmp — the native `ask` rule outlives it, and
+hook tier-0 is still what overrides that. The two are complementary: the sandbox
+bounds the blast radius, tier-0 removes the prompt.
+
+Deliberately **not** enabled here yet — it changes how every Bash command runs
+(commands needing broad filesystem or network access fail and retry unsandboxed,
+new network domains prompt on first use), and that blast radius wasn't wanted
+just to quiet temp-dir prompts. Tier-0's filesystem resolution covers the temp
+case without it.
+
+Worth revisiting when the goal grows past "stop asking about scratch space" to
+"bound what the agent can reach at all" — the one thing tier-0 structurally
+cannot do is survive a symlink swapped between check and use, because only the
+kernel sees the syscall.
