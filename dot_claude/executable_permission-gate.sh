@@ -14,7 +14,8 @@
 #            which fire in every mode (`Bash(rm -r*)` would otherwise still
 #            prompt; that the allow wins is verified, not assumed).
 #
-#            INVARIANT: tier 0 never overrides another gate. Because its allow
+#            INVARIANT: tier 0 never overrides another gate, except `curl` —
+#            see GATED_CMD for why that one is carved out. Because its allow
 #            outranks native `ask`, a command that tier 1, tier 2 or
 #            settings.json would have stopped must not ride an incidental temp
 #            mention past them — `git push --force origin main && ls /tmp/x` is
@@ -61,7 +62,21 @@ RM_ANY='(^|[^[:alnum:]_])(/bin/|/usr/bin/)?rm([[:space:]]|$)'
 # simply not eligible for an allow, temp paths or not. `git` is here whole
 # rather than as `git push`, because `git clean -fdx` is just as destructive and
 # no git operation is ever really "about tmp".
-GATED_CMD='(^|[^[:alnum:]_./-])(ssh|sudo|curl|wget|git)([[:space:]]|$)'
+#
+# `curl` is the one deliberate exception to the invariant, and it is an exception
+# on purpose: fetching a reference file into a scratchpad is the single most
+# common thing that interrupted real work, and it is what this exemption was
+# built for. It stays safe only because the other conditions still hold around
+# it — the command must name a temp path, every filesystem path it names must
+# resolve inside tmp, and every command word must be on the allowlist. So
+# `curl -o ~/.zshrc`, `curl … > ~/x` and `curl … | sh` are all still stopped,
+# by conditions 3 and 5 rather than by this list.
+#
+# What it does concede: network egress with no prompt, when the command is
+# otherwise confined to tmp. `curl -T /tmp/x https://…` uploads a temp file
+# unattended. That is the accepted cost — data already sitting in a scratchpad.
+# `wget` stays gated, since curl covers the workflow and one door is enough.
+GATED_CMD='(^|[^[:alnum:]_./-])(ssh|sudo|wget|git)([[:space:]]|$)'
 
 has() { printf '%s' "$cmd" | grep -Eq "$1"; }
 
@@ -175,8 +190,13 @@ tmp_paths_resolve() {
 #   `..`               — climbs out of the temp root
 #   `$(...)` / backtick — target isn't known until the shell runs it
 #
-# A URL is path-like and so lands here too, which is intended: it is one of the
-# ways a "temp" command reaches the network.
+# An http(s) URL is exempt. It contains slashes, so it reads as path-like, but it
+# is not a filesystem path and cannot be a write or delete target — the risk it
+# carries is network reach, which conditions 4 and 5 govern by restricting which
+# commands may run at all. Without this exemption `curl https://x` could never
+# satisfy tmp_scoped and the curl carve-out above would be dead on arrival.
+# Only http/https: `file://` is a filesystem path in disguise, and scp-style
+# `user@host:path` is a remote write, so neither is listed.
 tmp_scoped() {
   case "$cmd" in
     *'..'*|*'$('*|*'`'*) return 1 ;;
@@ -184,9 +204,10 @@ tmp_scoped() {
   for raw in $cmd; do
     clean_tok "$raw"
     case "$tok" in
-      -*) continue ;;   # flag
-      */*|'~'*) ;;      # path-like, so it has to be a temp path
-      *) continue ;;    # bare word: rm, &&, echo, ...
+      -*) continue ;;              # flag
+      http://*|https://*) continue ;;  # URL, not a filesystem path
+      */*|'~'*) ;;                 # path-like, so it has to be a temp path
+      *) continue ;;               # bare word: rm, &&, echo, ...
     esac
     case "$tok" in
       /tmp|/tmp/*|/private/tmp|/private/tmp/*) ;;
@@ -229,6 +250,7 @@ cmd_words_safe() {
       rm|rmdir|cp|mv|ln|mkdir|touch|cat|head|tail|ls|echo|printf|pwd|cd) ;;
       stat|file|wc|sort|uniq|cut|tr|sed|awk|grep|egrep|fgrep|rg|find) ;;
       jq|diff|realpath|dirname|basename|du|chmod|tee|test|true|false) ;;
+      curl) ;;   # see GATED_CMD: allowed only inside an otherwise tmp-confined command
       *) return 1 ;;
     esac
   done

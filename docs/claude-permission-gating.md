@@ -89,7 +89,8 @@ alongside the native rules.
   upgrade; some published guidance claims hooks never bypass `ask`.)
   Use this bucket only for locations where the blast radius is genuinely nil.
 
-  **The invariant: tier 0 never overrides another gate.** Because its allow
+  **The invariant: tier 0 never overrides another gate** — with one documented
+  exception, `curl`, spelled out under condition 4. Because its allow
   outranks native `ask`, the bar is that a command must be provably *confined* to
   tmp — not merely that it *mentions* tmp. That distinction is the entire
   difference between an exemption and a universal bypass: if a temp mention alone
@@ -107,12 +108,25 @@ alongside the native rules.
      every candidate, not just deletions: a command's danger isn't announced by
      its name, and `chmod`, `mv` and `tee` wreck `$HOME` as thoroughly as `rm`.
      `..` and command substitution are refused outright here, since neither can
-     be resolved by inspection. A URL is path-like and so lands here too, which
-     is intended — it's one of the ways a "temp" command reaches the network.
+     be resolved by inspection. An `http(s)` URL is exempt: it has slashes so it
+     reads as path-like, but it isn't a filesystem path and can't be a write or
+     delete target. Only `http`/`https` — `file://` is a path in disguise and
+     scp-style `user@host:path` is a remote write.
   4. **No other gate already stops this command** (`GATED_CMD`: `ssh`, `sudo`,
-     `curl`, `wget`, `git`). This is the invariant made mechanical. `git` is
-     listed whole rather than as `git push`, because `git clean -fdx` is just as
-     destructive and no git operation is ever really "about tmp."
+     `wget`, `git`). This is the invariant made mechanical. `git` is listed whole
+     rather than as `git push`, because `git clean -fdx` is just as destructive
+     and no git operation is ever really "about tmp."
+
+     **`curl` is the one deliberate exception**, and it does break the invariant:
+     tier 2 gates `curl`, and a tmp-confined `curl` now overrides that. It's the
+     carve-out the exemption was built for — fetching a reference file into a
+     scratchpad was the single most common interruption. It stays safe because
+     the other conditions still close around it: `curl -o ~/.zshrc`,
+     `curl … > ~/x` and `curl … | sh` are all still stopped, by conditions 3 and
+     5 rather than by this list, and a `curl` naming no temp path at all never
+     reaches tier 0. What it concedes is network egress with no prompt inside an
+     otherwise tmp-confined command — `curl -T /tmp/x https://…` uploads a
+     scratch file unattended. `wget` stays gated; one door is enough.
   5. **Every command word is one we'll run unprompted** (`cmd_words_safe()`).
      Conditions 3 and 4 both reason about tokens that *look* like something —
      a path, a known-dangerous name. A bare word looks like neither, so
