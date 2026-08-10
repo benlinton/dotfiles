@@ -149,12 +149,30 @@ fi
 # ----------------------------------------------------------------------------
 # OPTIONAL: Go (shell-agnostic)
 # ----------------------------------------------------------------------------
-# Where `go install` puts binaries — goreleaser, golangci-lint, and anything
-# else fetched as a tool rather than a dependency. GOPATH is hardcoded rather
-# than read via `go env` to avoid a subprocess on every shell start.
-if [ -d "$HOME/go/bin" ]; then
-  export PATH="$HOME/go/bin:$PATH"
-fi
+# Keeps Go's state out of $HOME. Go already moved GOCACHE and GOENV to
+# macOS-appropriate locations on its own but deliberately left GOPATH at ~/go;
+# these two finish the job, and ~/go stops being created at all.
+#
+# GOPATH holds the module cache — GOMODCACHE follows it automatically, so it
+# does not need setting separately.
+#
+# GOBIN sends `go install` binaries to ~/.local/bin, which the PATH block above
+# already covers, so Go contributes no PATH entry of its own. This mirrors what
+# uv already does here: payloads under ~/.local/share/<tool>, entry points in
+# ~/.local/bin.
+#
+# Set unconditionally — no `command -v go` guard, and no test that the dirs
+# exist. Two reasons. These decide where Go WILL put things, so the paths are
+# meant to be absent until first use; and guarding on Go being installed would
+# defeat the purpose on a fresh machine, where the shell starts before Go is
+# installed and the first `go install` would then create ~/go after all. Two
+# env vars with no Go present are inert.
+#
+# Deliberately not `go env -w`, which persists to a machine-local file
+# (~/Library/Application Support/go/env) that would not travel with these
+# dotfiles.
+export GOPATH="$HOME/.local/share/go"
+export GOBIN="$HOME/.local/bin"
 
 # ----------------------------------------------------------------------------
 # OPTIONAL: bun (shell-agnostic)
