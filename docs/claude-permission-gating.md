@@ -106,6 +106,37 @@ The dividing lines, stated as the two questions:
 | Prompt in normal modes, **silent under bypass** | hook **tier 2** (the `case "$cmd"` block) |
 | Always run silently | native `permissions.allow` |
 
+## Two ways a rule silently does nothing
+
+Both of these were live in this repo. Neither is visible from the config itself —
+the rules look right, and everything stays internally consistent while matching
+nothing. Check for both before concluding a rule works.
+
+**A single leading `/` is not the filesystem root.** It resolves *relative to the
+settings file's own root*, which for `~/.claude/settings.json` means `~/.claude`.
+So `Read(/tmp/**)` matches `~/.claude/tmp/**`, not `/tmp`. Confirmed in the
+2.1.220 binary:
+
+```js
+if (e.startsWith("//")) return e.slice(1);                            // absolute
+if (e.startsWith("/") && !e.startsWith("//")) return resolve(t, e.slice(1));  // relative to root
+```
+
+The four forms: `//path` = filesystem root, `/path` = relative to the settings
+source, `~/path` = home, `path` = relative to cwd. **There is no warning for
+getting this wrong.** That is why the temp rules here are `Read(//tmp/**)` and
+`Edit(//tmp/**)` with two slashes.
+
+**Only some tool names are consulted for file rules.** `Write(...)`,
+`NotebookEdit(...)` and `MultiEdit(...)` are all inert — write `Edit(...)`, which
+covers every file-editing tool. `Glob(...)` is inert too; use `Read(...)`. This
+one *does* warn at startup, so launch Claude Code once after adding a file rule
+and read the first screen.
+
+The general lesson: a permission rule can only be verified against the running
+product, never by inspecting the config. `chezmoi apply`, start a session, and
+confirm the prompt behavior actually changed.
+
 ## Make the change
 
 - **Native rule:** edit the relevant array in the **source** (`dot_claude/settings.json`).
