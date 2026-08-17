@@ -1,0 +1,352 @@
+#!/bin/sh
+# IMPORTANT: Managed by chezmoi - do not edit this copy directly.
+# Source: ~/.local/share/chezmoi - edit there, then run `chezmoi apply`.
+# If you edit this file directly, notify the user and reconcile with the chezmoi source.
+#
+# Read and write the per-project permission policy that ~/.claude/permission-gate.sh
+# consults on every Bash tool call. Changes take effect on the NEXT tool call —
+# no session restart, because the hook re-reads these files each time it runs.
+#
+# Run `luma-policy --help` for the command list. Add -g/--global to any write to
+# target ~/.config/luma/policy.toml instead of this project.
+#
+# Run this yourself, not through the agent — the point of the file is to be the
+# one thing the agent cannot change. permission-gate.sh gates writes to it, and
+# settings.json denies the file tools outright.
+#
+# The slug and repo-root logic here MUST match permission-gate.sh. It is
+# duplicated rather than shared so the hook stays a single dependency-free file
+# on the hot path; if you change it in one place, change it in both.
+set -u
+
+LUMA_HOME=${LUMA_POLICY_HOME:-$HOME/.config/luma}
+me=${0##*/}
+
+# THE key table. Everything else derives from it — the valid-key check, the
+# valid-value check, the built-in defaults, `show`, and `keys`. Add a key here
+# and the CLI picks it up whole; the hook needs its own def_*, KEYS and matches()
+# entries to match (see docs/claude-permission-gating.md).
+#
+#   key | accepted values | built-in default | what it gates
+SPEC='
+trust|normal,full|normal|Whether this project skips the ask tier entirely.
+recursive_rm|always,ask,allow,deny|always|rm -r, -R, -rf, --recursive — including inside compounds and via /bin/rm.
+ssh|always,ask,allow,deny,trusted|ask|Any ssh invocation.
+curl|always,ask,allow,deny,safe|ask|Any curl invocation.
+wget|always,ask,allow,deny,safe|ask|Any wget invocation.
+sudo|always,ask,allow,deny|ask|Any sudo invocation.
+git_push|always,ask,allow,deny|ask|git push. Force-pushes also hit a native ask rule that fires in every mode.
+downloads|always,ask,allow,deny|allow|Package managers that fetch and then run what they fetched: npm/pnpm/yarn/bun, pip/uv, go, cargo, gem, brew, apt-get.
+policy_write|always,ask,allow,deny|always|Writes to the policy files themselves, and luma-policy set/unset/edit.
+ssh_hosts|<hostnames>|(unset)|Comma- or space-separated hosts treated as trusted when ssh = trusted.
+'
+
+KEYS=$(printf '%s\n' "$SPEC" | awk -F'|' 'NF > 1 { printf "%s ", $1 }')
+
+spec() { printf '%s\n' "$SPEC" | awk -F'|' -v k="$1" -v n="$2" '$1 == k { print $n; exit }'; }
+
+# A key whose accepted values are free-form rather than a closed set — written
+# as <something> in SPEC. ssh_hosts is the only one, and the allow/ask/deny
+# shorthands are meaningless for it.
+free_form() { case $(spec "$1" 2) in '<'*) return 0 ;; *) return 1 ;; esac; }
+
+# The long version, for keys where the short description leaves out something
+# that will bite you. Silence is fine for the obvious ones.
+key_note() {
+  case $1 in
+    trust) cat <<'EOF'
+"full" silences every ask-tier gate in this project without touching the always
+tier — recursive_rm still prompts. It is a per-project standing version of
+bypassPermissions, which is per-session and toggled with shift+tab.
+EOF
+    ;;
+    ssh) cat <<'EOF'
+"trusted" allows a host named in ssh_hosts and prompts for anything else.
+Anything it cannot parse with confidence prompts: no host, an unrecognised flag
+form, or two ssh invocations in one compound. Set ssh_hosts as well, or
+"trusted" trusts nothing.
+EOF
+    ;;
+    curl|wget) cat <<'EOF'
+"safe" allows a plain fetch and prompts when the command writes to disk (-o, -O,
+--output), uploads a body (-T, -d, -F, --data), or pipes into an interpreter
+(| sh, bash <(...), $(curl ...)).
+
+It CANNOT tell you what a URL returns. The hook sees only the command string, so
+"safe" is a claim about the shape of the command, never about the bytes that come
+back. Ergonomics, not containment.
+EOF
+    ;;
+    downloads) cat <<'EOF'
+This lists the common front doors, and that is all it can do. Any script that
+opens a socket downloads too, so treat this as a speed bump on the obvious cases
+rather than a claim that nothing reaches the network.
+EOF
+    ;;
+    policy_write) cat <<'EOF'
+Keeps a session from editing the rules that govern it. Paired with
+Edit(~/.config/luma/**) in settings.json permissions.deny, which covers the file
+tools. Reads stay ungated on purpose — being able to see the policy is what makes
+a refusal legible. Lowering this below "always" means an agent can hand itself
+any permission it likes.
+EOF
+    ;;
+  esac
+}
+
+value_meanings() {
+  cat <<'EOF'
+  allow    no opinion — the normal Claude Code permission flow decides
+  ask      prompt, but bypassPermissions and trust = "full" silence it
+  always   prompt in every mode, bypass included
+  deny     the hook refuses outright, every mode
+  trusted  (ssh) allow a host on ssh_hosts, otherwise prompt
+  safe     (curl/wget) allow a plain fetch; prompt when the command writes to
+           disk, uploads a body, or pipes into an interpreter
+EOF
+}
+
+usage() {
+  cat <<EOF
+Read and write the per-project permission policy that ~/.claude/permission-gate.sh
+consults on every Bash tool call. Changes take effect on the NEXT tool call — no
+session restart, because the hook re-reads these files each time it runs.
+
+  $me                      the effective policy for this project
+  $me list                 the same thing, spelled the way git/npm/gh spell it
+  $me keys [<key>]         what you can set, and what each key gates
+
+  $me allow <key>          shorthand for: set <key> allow
+  $me ask <key>            shorthand for: set <key> ask
+  $me deny <key>           shorthand for: set <key> deny
+  $me set <key> <value>    the general form — reaches safe, trusted, always
+  $me reset [<key>]        drop one override, or every override in this scope
+
+  $me projects             every project that has a config
+  $me path                 print the config file path
+  $me edit                 open it in \$EDITOR
+
+Add -g/--global to any write to target the global fallback instead of this
+project. Reads always show the merged result.
+
+Value meanings:
+
+EOF
+  value_meanings
+  printf '\nRun `%s keys` for what each key gates.\n' "$me"
+}
+
+cmd_keys() {
+  if [ $# -eq 1 ]; then
+    valid_key "$1" || die "unknown key: $1 (try $me keys)"
+    printf '%s\n\n' "$1"
+    printf '  accepts   %s\n' "$(spec "$1" 2 | tr ',' '|' | sed 's/|/ | /g')"
+    printf '  default   %s\n' "$(spec "$1" 3)"
+    printf '  current   %s (from %s)\n\n' "$(effective "$1" | cut -f1)" "$(effective "$1" | cut -f2)"
+    printf '%s\n' "$(spec "$1" 4)" | fold -s -w 76 | sed 's/^/  /'
+    note=$(key_note "$1")
+    [ -n "$note" ] && { printf '\n'; printf '%s\n' "$note" | sed 's/^/  /'; }
+    return 0
+  fi
+  printf '%-14s %-38s %s\n' KEY ACCEPTS DEFAULT
+  for k in $KEYS; do
+    printf '%-14s %-38s %s\n' "$k" "$(spec "$k" 2 | tr ',' '|' | sed 's/|/ | /g')" "$(spec "$k" 3)"
+  done
+  printf '\nValue meanings:\n\n'
+  value_meanings
+  printf '\nRun `%s keys <key>` for what one key gates and where it bites.\n' "$me"
+}
+
+die() { printf '%s: %s\n' "$me" "$1" >&2; exit 1; }
+
+# Nearest ancestor containing .git — matches permission-gate.sh.
+repo_root() {
+  d=$1
+  case "$d" in /*) ;; *) return 1 ;; esac
+  while [ -n "$d" ] && [ "$d" != / ]; do
+    [ -e "$d/.git" ] && { printf '%s' "$d"; return 0; }
+    d=${d%/*}
+  done
+  return 1
+}
+
+global=0
+args=''
+for a in "$@"; do
+  case $a in
+    -g|--global) global=1 ;;
+    -h|--help) usage; exit 0 ;;
+    *) args="$args $a" ;;
+  esac
+done
+# shellcheck disable=SC2086
+set -- $args
+
+here=$(pwd -P)
+project_dir=$(repo_root "$here") || project_dir=$here
+project_slug=$(printf '%s' "$project_dir" | tr '/.' '--')
+
+global_file=$LUMA_HOME/policy.toml
+project_file=$LUMA_HOME/projects/$project_slug.toml
+if [ "$global" -eq 1 ]; then target=$global_file; else target=$project_file; fi
+
+valid_key() {
+  for k in $KEYS; do [ "$k" = "$1" ] && return 0; done
+  return 1
+}
+
+valid_value() {
+  # ssh_hosts is the one free-form key: the hook's parser rejects any value that
+  # would need quoting, so reject the same set here and say so up front.
+  if [ "$1" = ssh_hosts ]; then
+    case $2 in *[!A-Za-z0-9_.,\ -]*) return 1 ;; *) return 0 ;; esac
+  fi
+  for v in $(spec "$1" 2 | tr ',' ' '); do [ "$v" = "$2" ] && return 0; done
+  return 1
+}
+
+# Print "key=value" for one file, using the same subset parser as the hook.
+read_file() {
+  [ -r "$1" ] || return 0
+  awk '
+    /^[[:space:]]*[#[]/ { next }
+    {
+      eq = index($0, "="); if (eq == 0) next
+      k = substr($0, 1, eq - 1); v = substr($0, eq + 1)
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", k)
+      sub(/[[:space:]]*#.*$/, "", v)
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", v)
+      gsub(/^"|"$/, "", v); gsub(/^\x27|\x27$/, "", v)
+      if (k ~ /^[a-z_][a-z0-9_]*$/) P[k] = v
+    }
+    END { for (k in P) printf "%s=%s\n", k, P[k] }
+  ' "$1" 2>/dev/null
+}
+
+lookup() { read_file "$1" | sed -n "s/^$2=//p" | tail -1; }
+
+default_for() {
+  d=$(spec "$1" 3)
+  [ "$d" = '(unset)' ] && d=''
+  printf '%s' "$d"
+}
+
+# The effective value for a key here, and where it came from, as "value<TAB>source".
+effective() {
+  v=$(lookup "$project_file" "$1"); s=project
+  [ -n "$v" ] || { v=$(lookup "$global_file" "$1"); s=global; }
+  [ -n "$v" ] || { v=$(default_for "$1"); s=default; }
+  [ -n "$v" ] || v='(unset)'
+  printf '%s\t%s' "$v" "$s"
+}
+
+cmd_show() {
+  printf 'project  %s\n' "$project_dir"
+  printf 'slug     %s\n' "$project_slug"
+  printf 'project  %s%s\n' "$project_file" "$([ -r "$project_file" ] || echo '  (none)')"
+  printf 'global   %s%s\n\n' "$global_file" "$([ -r "$global_file" ] || echo '  (none)')"
+  printf '%-14s %-10s %s\n' KEY VALUE SOURCE
+  for k in $KEYS; do
+    IFS=$(printf '\t') read -r v src <<EOF
+$(effective "$k")
+EOF
+    printf '%-14s %-10s %s\n' "$k" "$v" "$src"
+  done
+  printf '\nRun `%s keys` for what each key gates.\n' "$me"
+}
+
+cmd_set() {
+  key=$1; value=$2
+  valid_key "$key" || die "unknown key: $key (try $me keys)"
+  valid_value "$key" "$value" || die "invalid value for $key: $value (try $me keys $key)"
+  mkdir -p "$(dirname "$target")" || die "cannot create $(dirname "$target")"
+  if [ ! -e "$target" ]; then
+    {
+      printf '# Claude Code permission policy.\n'
+      printf '# Read by ~/.claude/permission-gate.sh on every Bash tool call.\n'
+      [ "$global" -eq 1 ] || printf '# Project: %s\n' "$project_dir"
+      printf '# Edit with `luma-policy`, not by hand from an agent session.\n\n'
+    } > "$target" || die "cannot write $target"
+  fi
+  tmp=$target.$$
+  awk -v k="$key" -v v="$value" '
+    BEGIN { done = 0 }
+    {
+      line = $0
+      if (line ~ /^[[:space:]]*[#[]/) { print; next }
+      eq = index(line, "=")
+      if (eq > 0) {
+        key = substr(line, 1, eq - 1)
+        gsub(/^[[:space:]]+|[[:space:]]+$/, "", key)
+        if (key == k) { if (!done) { printf "%s = \"%s\"\n", k, v; done = 1 } ; next }
+      }
+      print
+    }
+    END { if (!done) printf "%s = \"%s\"\n", k, v }
+  ' "$target" > "$tmp" && mv "$tmp" "$target" || { rm -f "$tmp"; die "cannot write $target"; }
+  printf '%s = "%s"  ->  %s\n' "$key" "$value" "$target"
+  printf 'Takes effect on the next tool call; no session restart needed.\n'
+}
+
+# `reset <key>` drops one override; bare `reset` drops every override in this
+# scope. Both leave the other scope alone, so `reset` in a project never touches
+# the global fallback.
+cmd_reset() {
+  [ -e "$target" ] || die "no config to reset: $target"
+  if [ $# -eq 0 ]; then
+    rm -f "$target" || die "cannot remove $target"
+    printf 'removed %s\n' "$target"
+    printf 'Every key in this scope now falls back to %s.\n' \
+      "$([ "$global" -eq 1 ] && echo 'the built-in defaults' || echo 'global, then the built-in defaults')"
+    return 0
+  fi
+  key=$1
+  valid_key "$key" || die "unknown key: $key (try $me keys)"
+  tmp=$target.$$
+  awk -v k="$key" '
+    {
+      line = $0
+      if (line ~ /^[[:space:]]*[#[]/) { print; next }
+      eq = index(line, "=")
+      if (eq > 0) {
+        key = substr(line, 1, eq - 1)
+        gsub(/^[[:space:]]+|[[:space:]]+$/, "", key)
+        if (key == k) next
+      }
+      print
+    }
+  ' "$target" > "$tmp" && mv "$tmp" "$target" || { rm -f "$tmp"; die "cannot write $target"; }
+  printf 'reset %s in %s\n' "$key" "$target"
+  printf '%s is now %s (from %s).\n' "$key" "$(effective "$key" | cut -f1)" "$(effective "$key" | cut -f2)"
+}
+
+cmd_projects() {
+  d=$LUMA_HOME/projects
+  [ -d "$d" ] || { printf 'no project configs under %s\n' "$d"; return 0; }
+  for f in "$d"/*.toml; do
+    [ -e "$f" ] || { printf 'no project configs under %s\n' "$d"; return 0; }
+    b=${f##*/}; b=${b%.toml}
+    printf '%s\n' "$b"
+    read_file "$f" | sed 's/^/    /'
+  done
+}
+
+case ${1:-show} in
+  # `list` is the git/npm/gh spelling of "show me the effective config", and
+  # `projects` frees it up, so accept both for the same thing.
+  show|list)   cmd_show ;;
+  keys)        shift; [ $# -le 1 ] || die "usage: $me keys [<key>]"; cmd_keys "$@" ;;
+  allow|ask|deny)
+               [ $# -eq 2 ] || die "usage: $me $1 [-g] <key>"
+               valid_key "$2" || die "unknown key: $2 (try $me keys)"
+               free_form "$2" && die "$2 takes a value, not a verb — try: $me set $2 <value>"
+               cmd_set "$2" "$1" ;;
+  set)         [ $# -eq 3 ] || die "usage: $me set [-g] <key> <value>"; cmd_set "$2" "$3" ;;
+  # `unset` is what git config and kubectl call it; keep it working silently.
+  reset|unset) shift; [ $# -le 1 ] || die "usage: $me reset [-g] [<key>]"; cmd_reset "$@" ;;
+  projects)    cmd_projects ;;
+  path)        printf '%s\n' "$target" ;;
+  edit)        mkdir -p "$(dirname "$target")"; ${EDITOR:-vi} "$target" ;;
+  help)        usage ;;
+  *)           die "unknown command: $1 (try $me --help)" ;;
+esac

@@ -29,7 +29,8 @@
       "Read(**/secrets/*)",
       "Read(**/*credential*)",
       "Read(**/*.pem)",
-      "Read(**/*.key)"
+      "Read(**/*.key)",
+      "Edit(~/.config/luma/**)"
     ],
     "ask": [
       "Bash(rm -r*)",
