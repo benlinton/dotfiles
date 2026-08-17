@@ -31,6 +31,8 @@ Chezmoi uses filename prefixes/suffixes to determine how files are handled:
 
 `.chezmoi.toml.tmpl` prompts for `name`, `email`, and `githubUser` on first run. These values are available in templates as `{{ .chezmoi.config.data.name }}` etc.
 
+`email` is not just config — `dot_gitconfig.tmpl` makes it the git commit identity, so it is published in every commit the machine makes and cannot be recalled once pushed. Answer it with a role address on a domain you control rather than a personal inbox: portable off any one host, and safe to publish. A personal address here propagates to every repository on the machine silently, and because the live `~/.gitconfig` is generated, a per-repo `git config user.email` override is reverted by the next `chezmoi apply` — fix the template, not the output. There is deliberately **no default**: this file is committed, so a hardcoded address would become the identity of anyone who forks these dotfiles.
+
 ### Shell config
 
 - `dot_shellrc` → shared POSIX-compatible config sourced by both `.bashrc` and `.zshrc`; sets `EDITOR`, `HISTSIZE`, PATH, and optional tool integrations (pyenv, nvm)

@@ -1,7 +1,15 @@
 # Input saved in ~/.config/chezmoi/chezmoi.toml
+#
+# `email` becomes the git commit identity in dot_gitconfig.tmpl, so it is
+# published in every commit this machine makes, forever, and cannot be recalled
+# once pushed. Prefer a role address on a domain you control over a personal
+# inbox: it is portable off any one host and safe to publish, which a personal
+# address is not. Deliberately has no default — this file is committed, and a
+# hardcoded address would become the identity of anyone who forks these
+# dotfiles.
 
 [data]
   machine_profile = {{ promptStringOnce . "data.machine_profile" "Machine profile (workstation|server)" | quote }}
   name = {{ promptStringOnce . "data.name" "Full name" | quote }}
-  email = {{ promptStringOnce . "data.email" "Email" | quote }}
+  email = {{ promptStringOnce . "data.email" "Commit email (published in every commit; prefer a role address you control)" | quote }}
   githubUser = {{ promptStringOnce . "data.githubUser" "GitHub username" | quote }}
