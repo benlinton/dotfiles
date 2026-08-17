@@ -29,7 +29,8 @@
       "Read(**/secrets/*)",
       "Read(**/*credential*)",
       "Read(**/*.pem)",
-      "Read(**/*.key)"
+      "Read(**/*.key)",
+      "Edit(~/.config/luma/**)"
     ],
     "ask": [
       "Bash(rm -r*)",
@@ -63,7 +64,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$HOME/.claude/permission-gate.sh\""
+            "command": "\"$HOME/.config/luma/foreman/permission-gate.sh\""
           }
         ]
       }
