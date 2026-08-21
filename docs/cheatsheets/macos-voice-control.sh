@@ -8,6 +8,7 @@
 "Go to sleep" / "Stop listening"        # Pause listening (commands ignored until resumed)
 "Wake up" / "Start listening"           # Resume listening
 "Stop listening <device-name>"          # Stop listening on a specific device only
+"Command mode"                          # Listen for commands but don't type ordinary speech
 
 ## SHOW GRID AND NUMBERS
 "Show numbers"                          # Overlay numbers on every clickable element
