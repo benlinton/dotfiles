@@ -2,6 +2,9 @@
 
 Use **macOS Voice Control + Superwhisper + Kitty + Claude Code** to work primarily by voice.
 
+> The `hands-free` command automates steps 1 and 2 of this setup on a machine that has
+> already run `hands-free init` — see [`hands-free.md`](hands-free.md).
+
 ## 1. Basic Setup
 
 1. Enable **Voice Control** in macOS Accessibility settings.

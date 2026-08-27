@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Source for the "Voice Control Off" shortcut installed by `hands-free init`.
+  Managed by chezmoi - edit here, then run `chezmoi apply`.
+
+  `state: 0` is what the Shortcuts editor emits for off. Note this does NOT
+  match the intent definition's own enum (which numbers the State cases
+  on = 1, off = 2); those values make the action fail at run time. The editor's
+  serialization is the one that works, so keep it.
+
+  See voice-control-on.shortcut.plist for the on case, which carries no
+  parameters at all.
+-->
+<plist version="1.0">
+<dict>
+	<key>WFWorkflowActions</key>
+	<array>
+		<dict>
+			<key>WFWorkflowActionIdentifier</key>
+			<string>com.apple.UniversalAccess.UASettingsShortcuts.UAToggleVoiceControlIntent</string>
+			<key>WFWorkflowActionParameters</key>
+			<dict>
+				<key>state</key>
+				<integer>0</integer>
+			</dict>
+		</dict>
+	</array>
+	<key>WFWorkflowClientVersion</key>
+	<string>2038.0.4</string>
+	<key>WFWorkflowMinimumClientVersion</key>
+	<integer>900</integer>
+	<key>WFWorkflowMinimumClientVersionString</key>
+	<string>900</string>
+	<key>WFWorkflowIcon</key>
+	<dict>
+		<key>WFWorkflowIconGlyphNumber</key>
+		<integer>59511</integer>
+		<key>WFWorkflowIconStartColor</key>
+		<integer>4282601983</integer>
+	</dict>
+	<key>WFWorkflowImportQuestions</key>
+	<array/>
+	<key>WFWorkflowInputContentItemClasses</key>
+	<array/>
+	<key>WFWorkflowTypes</key>
+	<array/>
+</dict>
+</plist>
