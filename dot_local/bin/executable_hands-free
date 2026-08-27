@@ -1,0 +1,409 @@
+#!/usr/bin/env bash
+# IMPORTANT: Managed by chezmoi - do not edit this copy directly.
+# Source: ~/.local/share/chezmoi - edit there, then run `chezmoi apply`.
+# If you edit this file directly, notify the user and reconcile with the chezmoi source.
+
+set -euo pipefail
+
+PROGNAME=${0##*/}
+VERSION=1.0.0
+
+# --- configuration (all overridable from the environment) -------------------
+
+: "${HANDS_FREE_SUPERWHISPER_APP:=superwhisper}"
+: "${HANDS_FREE_SUPERWHISPER_DOMAIN:=com.superduper.superwhisper}"
+: "${HANDS_FREE_MODE:=Hands Free}"
+: "${HANDS_FREE_SHORTCUT_ON:=Voice Control On}"
+: "${HANDS_FREE_SHORTCUT_OFF:=Voice Control Off}"
+: "${HANDS_FREE_DATA_DIR:=$HOME/.local/share/hands-free}"
+
+# How long to wait for an asynchronous state change to land, in seconds.
+: "${HANDS_FREE_TIMEOUT:=15}"
+
+# --- output helpers ---------------------------------------------------------
+
+if [ -t 2 ]; then
+  _dim=$'\033[2m'; _red=$'\033[31m'; _yellow=$'\033[33m'; _reset=$'\033[0m'
+else
+  _dim=''; _red=''; _yellow=''; _reset=''
+fi
+
+info() { printf '%s\n' "$*"; }
+step() { printf '%s==>%s %s\n' "$_dim" "$_reset" "$*"; }
+warn() { printf '%s%s: warning:%s %s\n' "$_yellow" "$PROGNAME" "$_reset" "$*" >&2; }
+err()  { printf '%s%s: error:%s %s\n' "$_red" "$PROGNAME" "$_reset" "$*" >&2; }
+die()  { err "$*"; exit 1; }
+
+_hf_tmp=''
+_hf_cleanup() { [ -n "${_hf_tmp:-}" ] && rm -rf "$_hf_tmp"; return 0; }
+
+# --- platform guard ---------------------------------------------------------
+
+is_macos() { [ "$(uname -s)" = "Darwin" ]; }
+
+# Voice Control and Superwhisper are both macOS-only. Everywhere else this is a
+# no-op: warn, and exit successfully so provisioning scripts do not break.
+require_macos() {
+  if ! is_macos; then
+    warn "$1 is only supported on macOS (this is $(uname -s)); doing nothing."
+    warn "Voice Control and Superwhisper have no equivalent here yet."
+    exit 0
+  fi
+}
+
+# --- superwhisper -----------------------------------------------------------
+
+sw_is_running() { pgrep -qf "/${HANDS_FREE_SUPERWHISPER_APP}.app/Contents/MacOS/"; }
+
+sw_start() {
+  # -g: do not steal focus. -j: start hidden (it lives in the menu bar).
+  open -gj -a "$HANDS_FREE_SUPERWHISPER_APP" \
+    || die "could not launch ${HANDS_FREE_SUPERWHISPER_APP}; is it installed in /Applications?"
+  local i
+  for i in $(seq 1 "$HANDS_FREE_TIMEOUT"); do
+    sw_is_running && return 0
+    sleep 1
+  done
+  return 1
+}
+
+sw_active_mode_key() {
+  defaults read "$HANDS_FREE_SUPERWHISPER_DOMAIN" activeModeKey 2>/dev/null || true
+}
+
+# Map a human-facing mode name ("Hands Free") to its on-disk mode key
+# ("voice to text"). The two are unrelated strings, and the key is what every
+# other interface wants, so always resolve by name.
+sw_mode_key_for_name() {
+  local want=$1 dir f name key
+  dir=$(defaults read "$HANDS_FREE_SUPERWHISPER_DOMAIN" appFolderDirectory 2>/dev/null || echo "$HOME/Documents")
+  dir="$dir/superwhisper/modes"
+  [ -d "$dir" ] || return 1
+  for f in "$dir"/*.json; do
+    [ -e "$f" ] || continue
+    # plutil reads JSON as well as plists, so this needs no extra interpreter.
+    name=$(plutil -extract name raw -o - "$f" 2>/dev/null) || continue
+    [ "$name" = "$want" ] || continue
+    key=$(plutil -extract key raw -o - "$f" 2>/dev/null) || continue
+    printf '%s\n' "$key"
+    return 0
+  done
+  return 1
+}
+
+sw_set_mode() {
+  local key=$1 i
+
+  [ "$(sw_active_mode_key)" = "$key" ] && return 0
+
+  # Preferred path: the URL scheme switches modes in the running app. It only
+  # works for keys without spaces -- superwhisper does not decode the query
+  # value -- so treat it as best-effort and verify before trusting it.
+  case "$key" in
+    *' '*) ;;
+    *)
+      open "superwhisper://mode?key=${key}"
+      for i in $(seq 1 5); do
+        [ "$(sw_active_mode_key)" = "$key" ] && return 0
+        sleep 1
+      done
+      ;;
+  esac
+
+  # Fallback: write the preference with the app stopped, then relaunch. A
+  # running superwhisper rewrites its defaults on quit, so the order matters.
+  osascript -e "quit app \"${HANDS_FREE_SUPERWHISPER_APP}\"" >/dev/null 2>&1 || true
+  for i in $(seq 1 "$HANDS_FREE_TIMEOUT"); do
+    sw_is_running || break
+    sleep 1
+  done
+  defaults write "$HANDS_FREE_SUPERWHISPER_DOMAIN" activeModeKey -string "$key"
+  defaults write "$HANDS_FREE_SUPERWHISPER_DOMAIN" lastSelectedModeKey -string "$key"
+  sw_start || return 1
+  [ "$(sw_active_mode_key)" = "$key" ]
+}
+
+# --- voice control ----------------------------------------------------------
+
+# Apple gates the Voice Control switch behind private entitlements
+# (com.apple.private.security.storage.universalaccess and a mach-lookup
+# exception on com.apple.speech.CommandAndControl.utility), so no amount of
+# `defaults write` will move it. Shortcuts.app runs Apple's own entitled
+# extension on our behalf, which is why `hands-free init` exists.
+vc_is_enabled() {
+  [ "$(defaults read com.apple.Accessibility CommandAndControlEnabled 2>/dev/null || echo 0)" = "1" ]
+}
+
+shortcut_exists() {
+  shortcuts list 2>/dev/null | grep -Fqx "$1"
+}
+
+# `shortcuts run` hangs indefinitely often enough to matter -- it has been seen
+# to block both when the target state was already set and when it was not, with
+# the shortcut itself still taking effect. So bound it, and never let it wedge
+# an interactive session.
+run_shortcut() {
+  local name=$1 pid killer
+  shortcuts run "$name" >/dev/null 2>&1 &
+  pid=$!
+  ( sleep "$HANDS_FREE_TIMEOUT"; kill -9 "$pid" 2>/dev/null ) >/dev/null 2>&1 &
+  killer=$!
+  # Drop the watchdog from the job table so reaping it stays silent.
+  disown "$killer" 2>/dev/null || true
+  wait "$pid" 2>/dev/null || true
+  kill "$killer" 2>/dev/null || true
+}
+
+vc_set() {
+  local want=$1 name i
+  case "$want" in
+    on)  name=$HANDS_FREE_SHORTCUT_ON ;;
+    off) name=$HANDS_FREE_SHORTCUT_OFF ;;
+  esac
+
+  if ! shortcut_exists "$name"; then
+    err "the shortcut \"$name\" is not installed."
+    err "run '$PROGNAME init' once on this machine to install it."
+    return 1
+  fi
+
+  # Deliberately ignore the exit status: a killed-but-effective run is common,
+  # and the accessibility preference is the only trustworthy signal.
+  run_shortcut "$name"
+
+  for i in $(seq 1 "$HANDS_FREE_TIMEOUT"); do
+    if [ "$want" = on ]; then vc_is_enabled && return 0
+    else vc_is_enabled || return 0
+    fi
+    sleep 1
+  done
+  return 1
+}
+
+# --- commands ---------------------------------------------------------------
+
+cmd_enable() {
+  require_macos "$PROGNAME enable"
+
+  step "Superwhisper"
+  if sw_is_running; then
+    info "    already running"
+  else
+    sw_start || die "superwhisper did not come up within ${HANDS_FREE_TIMEOUT}s."
+    info "    started"
+  fi
+
+  local key
+  if key=$(sw_mode_key_for_name "$HANDS_FREE_MODE"); then
+    if [ "$(sw_active_mode_key)" = "$key" ]; then
+      info "    already in \"$HANDS_FREE_MODE\" mode"
+    elif sw_set_mode "$key"; then
+      info "    switched to \"$HANDS_FREE_MODE\" mode"
+    else
+      warn "could not switch superwhisper to \"$HANDS_FREE_MODE\"; select it by hand."
+    fi
+  else
+    warn "no superwhisper mode named \"$HANDS_FREE_MODE\" found; leaving the mode alone."
+  fi
+
+  step "Voice Control"
+  if vc_is_enabled; then
+    info "    already on"
+  else
+    vc_set on || die "Voice Control did not turn on within ${HANDS_FREE_TIMEOUT}s."
+    info "    turned on"
+  fi
+
+  step "Command Mode"
+  info "    say \"Command mode\" to stop Voice Control typing what you say"
+  info "    ${_dim}(no automation surface exists for this -- see '$PROGNAME help')${_reset}"
+}
+
+cmd_disable() {
+  require_macos "$PROGNAME disable"
+
+  step "Voice Control"
+  if ! vc_is_enabled; then
+    info "    already off"
+  else
+    vc_set off || die "Voice Control did not turn off within ${HANDS_FREE_TIMEOUT}s."
+    info "    turned off"
+  fi
+
+  step "Superwhisper"
+  info "    left alone (still running, still in its current mode)"
+}
+
+cmd_status() {
+  require_macos "$PROGNAME status"
+
+  local key active mode_name
+
+  printf 'superwhisper:   '
+  if sw_is_running; then printf 'running'; else printf 'not running'; fi
+  active=$(sw_active_mode_key)
+  [ -n "$active" ] && printf ', mode=%s' "$active"
+  if key=$(sw_mode_key_for_name "$HANDS_FREE_MODE"); then
+    if [ "$active" = "$key" ]; then mode_name=" (\"$HANDS_FREE_MODE\")"; else mode_name=""; fi
+    printf '%s' "$mode_name"
+  fi
+  printf '\n'
+
+  printf 'voice control:  '
+  if vc_is_enabled; then printf 'on\n'; else printf 'off\n'; fi
+
+  printf 'shortcuts:      '
+  local missing=0
+  shortcut_exists "$HANDS_FREE_SHORTCUT_ON"  || { printf 'missing "%s" ' "$HANDS_FREE_SHORTCUT_ON"; missing=1; }
+  shortcut_exists "$HANDS_FREE_SHORTCUT_OFF" || { printf 'missing "%s" ' "$HANDS_FREE_SHORTCUT_OFF"; missing=1; }
+  if [ "$missing" -eq 0 ]; then printf 'installed\n'; else printf '(run: %s init)\n' "$PROGNAME"; fi
+}
+
+cmd_init() {
+  require_macos "$PROGNAME init"
+
+  local src staged signed name state installed=0 i
+  _hf_tmp=$(mktemp -d) || die "could not create a temporary directory."
+  trap _hf_cleanup EXIT
+
+  for name in "$HANDS_FREE_SHORTCUT_ON" "$HANDS_FREE_SHORTCUT_OFF"; do
+    if shortcut_exists "$name"; then
+      info "\"$name\" is already installed."
+      continue
+    fi
+
+    case "$name" in
+      "$HANDS_FREE_SHORTCUT_ON")  state=on ;;
+      *)                          state=off ;;
+    esac
+
+    src="$HANDS_FREE_DATA_DIR/voice-control-${state}.shortcut.plist"
+    [ -f "$src" ] || die "missing shortcut source $src (is the dotfiles repo fully applied?)"
+
+    # `shortcuts sign` rejects any input not named *.shortcut, and the output
+    # filename becomes the installed shortcut's name -- so stage both by name.
+    mkdir -p "$_hf_tmp/src"
+    staged="$_hf_tmp/src/$name.shortcut"
+    cp "$src" "$staged"
+
+    signed="$_hf_tmp/$name.shortcut"
+    # `shortcuts sign` intermittently fails with "Failed to modify some
+    # records"; a retry clears it.
+    local attempt
+    for attempt in 1 2 3; do
+      shortcuts sign -m anyone -i "$staged" -o "$signed" 2>/dev/null && break
+      [ "$attempt" -eq 3 ] && die "could not sign $src after 3 attempts."
+      sleep 2
+    done
+
+    info ""
+    info "Installing \"$name\"."
+    info "Shortcuts.app will open and ask you to confirm -- click ${_yellow}Add Shortcut${_reset}."
+    open "$signed"
+
+    for i in $(seq 1 120); do
+      if shortcut_exists "$name"; then
+        info "  installed."
+        installed=1
+        break
+      fi
+      sleep 1
+    done
+
+    shortcut_exists "$name" \
+      || die "\"$name\" was not added. Re-run '$PROGNAME init' to try again."
+  done
+
+  info ""
+  if [ "$installed" -eq 1 ]; then
+    info "Done. '$PROGNAME enable' can now turn Voice Control on and off."
+  else
+    info "Nothing to do -- both shortcuts were already installed."
+  fi
+}
+
+cmd_help() {
+  cat <<EOF
+Usage: $PROGNAME <command>
+
+Put this Mac into hands-free dictation: Superwhisper for content, macOS Voice
+Control for commands.
+
+Commands:
+  enable      Start Superwhisper in "$HANDS_FREE_MODE" mode and turn Voice Control on.
+  disable     Turn Voice Control off. Superwhisper is left running and untouched.
+  status      Print the current state of both, and whether init has been run.
+  init        Install the two Voice Control shortcuts this tool drives. Run once
+              per machine; needs one click in Shortcuts.app per shortcut.
+  help        Show this message.
+
+Options:
+  -h, --help      Show this message.
+  -V, --version   Print the version and exit.
+
+All commands are idempotent: running 'enable' twice does nothing the second
+time, and neither does 'disable' when Voice Control is already off.
+
+Why 'init' exists:
+  macOS gates the Voice Control switch behind entitlements only Apple-signed
+  code may hold, so there is no defaults key or CLI flag that turns it on.
+  Shortcuts.app can, because it runs Apple's own entitled extension. 'init'
+  installs two generated shortcuts -- "$HANDS_FREE_SHORTCUT_ON" and
+  "$HANDS_FREE_SHORTCUT_OFF" -- which 'enable' and 'disable' then invoke with
+  'shortcuts run'. Adding a shortcut always requires human confirmation, so
+  'init' opens each one and waits for you to click Add Shortcut.
+
+Command Mode:
+  'enable' cannot put Voice Control into Command Mode. Command Mode, "start
+  listening" and "stop listening" live behind the same private service, and
+  Shortcuts exposes no action for any of them -- the only Voice Control action
+  macOS publishes is on/off. Say "Command mode" once after enabling so that
+  ordinary speech is not typed into the terminal.
+
+Environment:
+  HANDS_FREE_MODE           Superwhisper mode to select (default: "Hands Free").
+  HANDS_FREE_SHORTCUT_ON    Shortcut that turns Voice Control on.
+  HANDS_FREE_SHORTCUT_OFF   Shortcut that turns Voice Control off.
+  HANDS_FREE_TIMEOUT        Seconds to wait for a state change (default: 15).
+  HANDS_FREE_DATA_DIR       Where the shortcut sources live
+                            (default: ~/.local/share/hands-free).
+
+Files:
+  ~/Documents/superwhisper/modes/*.json   Superwhisper modes, searched by name.
+  \$HANDS_FREE_DATA_DIR/*.shortcut.plist   Shortcut sources used by 'init'.
+
+Exit status:
+  0   Success -- including on non-macOS, where every command warns and does
+      nothing rather than failing a provisioning run.
+  1   Something went wrong, or a required shortcut is missing.
+  2   Bad usage.
+
+Examples:
+  $PROGNAME init      # once per machine
+  $PROGNAME enable    # start a hands-free session
+  $PROGNAME status
+  $PROGNAME disable
+EOF
+}
+
+# --- entry point ------------------------------------------------------------
+
+main() {
+  [ $# -eq 0 ] && { cmd_help >&2; exit 2; }
+
+  case $1 in
+    enable)             shift; cmd_enable "$@" ;;
+    disable)            shift; cmd_disable "$@" ;;
+    status)             shift; cmd_status "$@" ;;
+    init)               shift; cmd_init "$@" ;;
+    help|-h|--help)     cmd_help ;;
+    -V|--version)       printf '%s %s\n' "$PROGNAME" "$VERSION" ;;
+    *)
+      err "unknown command '$1'"
+      printf "Try '%s help'.\n" "$PROGNAME" >&2
+      exit 2
+      ;;
+  esac
+}
+
+main "$@"
