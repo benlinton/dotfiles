@@ -28,7 +28,7 @@ Exactly one thing: `dot_claude/settings.json`. Two parts of it matter.
   "PreToolUse": [
     {
       "matcher": "Bash|Read|Write|Edit|MultiEdit|NotebookEdit",
-      "hooks": [{ "type": "command", "command": "$HOME/.config/luma/foreman/permission-gate.sh" }]
+      "hooks": [{ "type": "command", "command": "$HOME/.local/share/luma/luma-foreman/permission-gate.sh" }]
     }
   ]
 }
@@ -38,9 +38,11 @@ Exactly one thing: `dot_claude/settings.json`. Two parts of it matter.
 global — one answer for every repository — and they are the layer the hook
 cannot override. Two of them are load-bearing for the gate:
 
-- `Edit(~/.config/luma/**)` in `deny` — stops a session editing the policy, and
-  the gate itself, which lives in the same directory for exactly this reason.
-  **Not optional.**
+- `Edit(~/.config/luma/**)` and `Edit(~/.local/share/luma/**)` in `deny` — the
+  first stops a session editing the policy, the second stops it editing the gate
+  script that enforces the policy. Foreman splits these across two roots
+  (`~/.config/luma` for state, `~/.local/share/luma` for code), so denying only
+  one leaves the other writable. **Both, and not optional.**
 - `Bash(rm -r*)` and the force-push entries in `ask` — backups that keep working
   if the hook script ever goes missing. A missing hook fails *open*.
 
